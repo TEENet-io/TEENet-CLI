@@ -53,16 +53,32 @@ describe("NodeInfo", function () {
 			expect(await nodeInfo.getNodeInfo(pk1)).to.deep.equal([node.pk, node.teeType, node.teeVer, node.attestation]);
 			expect(await nodeInfo.getNodeInfo(pk2)).to.deep.equal(emptyNodeInfo);
 		});
+		it("Should log the correct event and update the correct record", async function () {
+			const { nodeInfo, second, pk1, node } = await loadFixture(deployFixture);
+			expect(await nodeInfo.connect(second).addOrUpdate(node)).to.emit(nodeInfo, "AddOrUpdate").withArgs(node);
+
+			const teeType = ethers.hexlify(ethers.randomBytes(4));
+			const teeVer = ethers.hexlify(ethers.randomBytes(4));
+			const attestation = ethers.hexlify(ethers.randomBytes(64));
+			const newNode = {
+				pk: pk1,
+				teeType: teeType,
+				teeVer: teeVer,
+				attestation: attestation,
+			}
+			expect(await nodeInfo.connect(second).addOrUpdate(newNode)).to.emit(nodeInfo, "AddOrUpdate").withArgs(newNode);
+			expect(await nodeInfo.getNodeInfo(pk1)).to.deep.equal([newNode.pk, newNode.teeType, newNode.teeVer, newNode.attestation]);
+		});
 	});
 
 	describe("remove", function () {
 		it("Should not allow non-owner to operate", async function () {
 			const { nodeInfo, first, node } = await loadFixture(deployFixture);
-			
+
 			try {
 				await nodeInfo.connect(first).addOrUpdate(node);
-			} catch(err: any) {
-				const errMsg = "OwnableUnauthorizedAccount(\""+first.address+"\")";
+			} catch (err: any) {
+				const errMsg = "OwnableUnauthorizedAccount(\"" + first.address + "\")";
 				expect(err.message).to.include(errMsg);
 			}
 		});

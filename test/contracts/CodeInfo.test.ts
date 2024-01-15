@@ -43,6 +43,14 @@ describe("CodeInfo", function () {
 			expect(await codeInfo.getUrl(hash1)).to.equal(url);
 			expect(await codeInfo.getUrl(hash2)).to.equal("");
 		});
+		it("Should log the correct event and update the correct record", async function () {
+			const { codeInfo, second, hash1, url } = await loadFixture(deployFixture);
+			expect(await codeInfo.connect(second).addOrUpdate(hash1, url)).to.emit(codeInfo, "AddOrUpdate").withArgs(hash1, url);
+			
+			const newUrl = "https://new_urls";
+			expect(await codeInfo.connect(second).addOrUpdate(hash1, newUrl)).to.emit(codeInfo, "AddOrUpdate").withArgs(hash1, newUrl);
+			expect(await codeInfo.getUrl(hash1)).to.equal(newUrl);
+		});
 	});
 
 	describe("remove", function () {
