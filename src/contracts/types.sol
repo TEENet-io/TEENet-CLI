@@ -16,9 +16,9 @@ struct Node {
 
 struct Task {
 	bytes32 id;
+	address owner;
 	uint256 rewardPerNode;
 	uint256 start;
 	uint256 numDays; 		// in days
 	uint256 maxNodeNum;
-	address owner;
 }
