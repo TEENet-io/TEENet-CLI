@@ -1,6 +1,11 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
+struct Code {
+	bytes32 hash;
+	string url;
+}
+
 struct Node {
 	bytes32 pk;
 	bytes teeType;
@@ -9,13 +14,10 @@ struct Node {
 }
 
 struct Task {
-	uint256 id;
+	bytes32 id;
 	uint256 rewardPerNode;
-
 	uint256 start;
-	uint256 duration; 		// in days
-
-	address owner;
-
+	uint256 numDays; 		// in days
 	uint256 maxNodeNum;
+	address owner;
 }
