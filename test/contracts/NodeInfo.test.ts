@@ -51,6 +51,15 @@ describe("NodeInfo", function () {
 				expect(err.message).to.include(errMsg);
 			}
 		});
+		it("Should not allow zero pk", async function () {
+			const { nodeInfo, second, emptyNode } = await loadFixture(deployFixture);
+
+			try {
+				await nodeInfo.connect(second).addOrUpdate(emptyNode);
+			} catch (err: any) {
+				expect(err.message).to.include("Invalid pk");
+			}
+		});
 		it("Should log the correct event and add the correct record", async function () {
 			const { nodeInfo, second, pk1, pk2, node, emptyNode } = await loadFixture(deployFixture);
 			expect(await nodeInfo.connect(second).addOrUpdate(node)).to.emit(nodeInfo, "AddOrUpdate").withArgs(node);
