@@ -8,6 +8,7 @@ struct Code {
 
 struct Node {
 	bytes32 pk;
+	address owner;
 	bytes teeType;
 	bytes teeVer;
 	bytes attestation;
