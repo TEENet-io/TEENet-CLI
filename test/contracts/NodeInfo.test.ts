@@ -1,6 +1,7 @@
 import { loadFixture } from "@nomicfoundation/hardhat-toolbox/network-helpers";
 import { ethers } from "hardhat";
 import { expect } from "chai";
+import { Node } from "./types";
 
 describe("NodeInfo", function () {
 	async function deployFixture() {
@@ -15,16 +16,21 @@ describe("NodeInfo", function () {
 		const teeType = ethers.hexlify(ethers.randomBytes(4));
 		const teeVer = ethers.hexlify(ethers.randomBytes(4));
 		const attestation = ethers.hexlify(ethers.randomBytes(64));
-		const node = {
+		const node: Node = {
 			pk: pk1,
 			teeType: teeType,
 			teeVer: teeVer,
 			attestation: attestation,
 		}
 
-		const emptyNodeInfo = [ethers.ZeroHash, '0x', '0x', '0x']
+		const emptyNode: Node = {
+			pk: ethers.ZeroHash, 
+			teeType: '0x', 
+			teeVer: '0x', 
+			attestation: '0x'
+		};
 
-		return { nodeInfo, first, second, pk1, pk2, node, emptyNodeInfo };
+		return { nodeInfo, first, second, pk1, pk2, node, emptyNode };
 	}
 
 	describe("Deployment", function () {
@@ -46,12 +52,12 @@ describe("NodeInfo", function () {
 			}
 		});
 		it("Should log the correct event and add the correct record", async function () {
-			const { nodeInfo, second, pk1, pk2, node, emptyNodeInfo } = await loadFixture(deployFixture);
+			const { nodeInfo, second, pk1, pk2, node, emptyNode } = await loadFixture(deployFixture);
 			expect(await nodeInfo.connect(second).addOrUpdate(node)).to.emit(nodeInfo, "AddOrUpdate").withArgs(node);
 			expect(await nodeInfo.nodeExists(pk1)).to.equal(true);
 			expect(await nodeInfo.nodeExists(pk2)).to.equal(false);
 			expect(await nodeInfo.getNodeInfo(pk1)).to.deep.equal([node.pk, node.teeType, node.teeVer, node.attestation]);
-			expect(await nodeInfo.getNodeInfo(pk2)).to.deep.equal(emptyNodeInfo);
+			expect(await nodeInfo.getNodeInfo(pk2)).to.deep.equal(Object.values(emptyNode));
 		});
 		it("Should log the correct event and update the correct record", async function () {
 			const { nodeInfo, second, pk1, node } = await loadFixture(deployFixture);
@@ -67,7 +73,7 @@ describe("NodeInfo", function () {
 				attestation: attestation,
 			}
 			expect(await nodeInfo.connect(second).addOrUpdate(newNode)).to.emit(nodeInfo, "AddOrUpdate").withArgs(newNode);
-			expect(await nodeInfo.getNodeInfo(pk1)).to.deep.equal([newNode.pk, newNode.teeType, newNode.teeVer, newNode.attestation]);
+			expect(await nodeInfo.getNodeInfo(pk1)).to.deep.equal(Object.values(newNode));
 		});
 	});
 
@@ -83,11 +89,11 @@ describe("NodeInfo", function () {
 			}
 		});
 		it("Should remove data correctly", async function () {
-			const { nodeInfo, second, pk1, node, emptyNodeInfo } = await loadFixture(deployFixture);
+			const { nodeInfo, second, pk1, node, emptyNode } = await loadFixture(deployFixture);
 			expect(await nodeInfo.connect(second).addOrUpdate(node)).to.emit(nodeInfo, "AddOrUpdate").withArgs(node);
 			expect(await nodeInfo.connect(second).remove(pk1)).to.emit(nodeInfo, "Remove").withArgs(pk1);
 			expect(await nodeInfo.nodeExists(pk1)).to.equal(false);
-			expect(await nodeInfo.getNodeInfo(pk1)).to.deep.equal(emptyNodeInfo);
+			expect(await nodeInfo.getNodeInfo(pk1)).to.deep.equal(Object.values(emptyNode));
 		});
 	});
 });
