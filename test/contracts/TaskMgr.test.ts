@@ -1,7 +1,7 @@
 import { loadFixture, time } from "@nomicfoundation/hardhat-toolbox/network-helpers";
 import { ethers } from "hardhat";
 import { expect } from "chai";
-import { Task, Node } from "./types";
+import { Task, Node } from "../../src/types";
 
 describe("TaskMgr", function () {
 	async function deployFixture() {
