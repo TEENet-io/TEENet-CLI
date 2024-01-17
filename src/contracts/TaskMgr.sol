@@ -18,6 +18,7 @@ contract TaskMgr is Ownable {
 	event Add(bytes32 indexed id, Task task);
 	event Join(bytes32 indexed id, bytes32 indexed pk);
 	event Reward(bytes32 indexed id, bytes32[] pks);
+	event WithdrawDeposit(bytes32 indexed id, uint256 amount);
 
     constructor(
         address initOwner,
@@ -133,5 +134,27 @@ contract TaskMgr is Ownable {
 		}
 		
 		emit Reward(id, pks);
+	}
+
+	/**
+	 * @dev Rules for returning deposit
+	 * 1. Task must exist
+	 * 2. Task must be expired
+	 * 3. Deposit must be larger than zero
+	 * 4. Can only be called by contract owner
+	 * 
+	 * @param id task id
+	 */
+	function withdrawDeposit(bytes32 id) external onlyOwner {
+		require(id != 0, "Zero id");
+		require(tasks[id].id != 0, "Task not found");
+		require(tasks[id].start + tasks[id].numDays * 1 days <= block.timestamp, "Task must be expired");
+		require(deposit[id] > 0, "Zero deposit");
+
+		uint256 amount = deposit[id];
+		deposit[id] = 0;
+		balance[tasks[id].owner] += amount;
+
+		emit WithdrawDeposit(id, amount);
 	}
 }

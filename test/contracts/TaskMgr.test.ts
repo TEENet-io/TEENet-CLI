@@ -178,8 +178,8 @@ describe("TaskMgr", function () {
 			const { taskMgr, second, otherAccounts, task, nodeInfo, nodes } = await loadFixture(deployFixture);
 
 			await taskMgr.add(task, {value: task.rewardPerNode * task.maxNodeNum});
-			for(let i = 0; i < nodes.length; i++) {
-				await nodeInfo.connect(second).addOrUpdate(nodes[i]);
+			for(const node of nodes) {
+				await nodeInfo.connect(second).addOrUpdate(node);
 			}
 			for(let i = 0; i < task.maxNodeNum; i++) {
 				await taskMgr.connect(otherAccounts[i]).join(task.id, nodes[i].pk);
@@ -294,6 +294,74 @@ describe("TaskMgr", function () {
 			} catch (err: any) {
 				expect(err.message).to.include("Node can only be rewarded once");
 			}
+		});
+		it("Should allow separate rewards", async function () {
+			const { taskMgr, second, otherAccounts, task, nodeInfo, nodes } = await loadFixture(deployFixture);
+			
+			await taskMgr.add(task, {value: task.rewardPerNode * task.maxNodeNum});
+			for(let i = 0; i < task.maxNodeNum; i++) {
+				await nodeInfo.connect(second).addOrUpdate(nodes[i]);
+				await taskMgr.connect(otherAccounts[i]).join(task.id, nodes[i].pk);
+			}
+
+			time.increase(time.duration.days(task.numDays));
+			expect(await taskMgr.connect(second).reward(task.id, [nodes[0].pk]))
+				.to.emit(taskMgr, "Reward").withArgs(task.id, [nodes[0].pk]);
+			expect(await taskMgr.connect(second).reward(task.id, [nodes[1].pk]))
+				.to.emit(taskMgr, "Reward").withArgs(task.id, [nodes[1].pk]);
+
+			expect(await taskMgr.balance(nodes[0].owner)).to.equal(task.rewardPerNode);
+			expect(await taskMgr.balance(nodes[1].owner)).to.equal(task.rewardPerNode);
+		});
+	});
+	describe("withdrawDeposit", function () {
+		it("Should not allow non-owner", async function () {
+			const { taskMgr, first, task } = await loadFixture(deployFixture);
+
+			await taskMgr.add(task, {value: task.rewardPerNode * task.maxNodeNum});
+
+			try {
+				await taskMgr.withdrawDeposit(task.id);
+			} catch (err: any) {
+				const errMsg = "OwnableUnauthorizedAccount(\"" + first.address + "\")";
+				expect(err.message).to.include(errMsg);
+			}
+		});
+		it("Should not allow non-exist task", async function () {
+			const { taskMgr, second } = await loadFixture(deployFixture);
+
+			const id = ethers.hexlify(ethers.randomBytes(32));
+
+			try {
+				await taskMgr.connect(second).withdrawDeposit(id);
+			} catch (err: any) {
+				expect(err.message).to.include("Task not found");
+			}
+		});
+		it("Should not allow non-expired task", async function () {
+			const { taskMgr, second, task } = await loadFixture(deployFixture);
+
+			await taskMgr.add(task, {value: task.rewardPerNode * task.maxNodeNum});
+			time.increase(time.duration.days(task.numDays)-1);
+
+			try {
+				await taskMgr.connect(second).withdrawDeposit(task.id);
+			} catch (err: any) {
+				expect(err.message).to.include("Task must be expired");
+			}
+		});
+		it("Should log the correct event and set the correct balance", async function () {
+			const { taskMgr, second, task } = await loadFixture(deployFixture);
+
+			const value = task.rewardPerNode * task.maxNodeNum;
+			await taskMgr.add(task, {value: value});
+			time.increase(time.duration.days(task.numDays));
+
+			expect(await taskMgr.connect(second).withdrawDeposit(task.id))
+				.to.emit(taskMgr, "WithdrawDeposit").withArgs(task.id, value);
+
+			expect(await taskMgr.balance(task.owner)).to.equal(value);
+			expect(await taskMgr.deposit(task.id)).to.equal(0);
 		});
 	});
 });
