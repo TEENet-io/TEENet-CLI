@@ -5,6 +5,17 @@
 	"version": "0.2.0",
 	"configurations": [
 		{
+			"name": "Hardhat Individual TS",
+			"type": "node",
+			"request": "launch",
+			"console": "integratedTerminal",
+			"runtimeExecutable": "yarn",
+			"runtimeArgs": [
+				"runhh",
+				"${file}"
+			]
+		},
+		{
 			"name": "Hardhat Individual Test",
 			"type": "node",
 			"request": "launch",

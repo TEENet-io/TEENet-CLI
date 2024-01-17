@@ -1,3 +1,6 @@
+# project
+deployOn*.json
+
 # hardhat
 artifacts/
 typechain-types/

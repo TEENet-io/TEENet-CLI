@@ -4,7 +4,8 @@
   "description": "A decentralized TEE network",
   "main": "index.js",
   "scripts": {
-    "testhh": "yarn hardhat test --no-compile"
+    "testhh": "yarn hardhat test",
+	"runhh": "yarn hardhat run"
   },
   "author": "Peter Zhou",
   "license": "MIT",
