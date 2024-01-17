@@ -5,7 +5,20 @@
 	"version": "0.2.0",
 	"configurations": [
 		{
-			"name": "Hardhat Individual TS",
+			"name": "Debug mocha ts test",
+			"type": "node",
+			"request": "launch",
+			"program": "${workspaceFolder}/node_modules/mocha/bin/_mocha",
+			"args": [
+				"--no-timeouts",
+				"${file}"
+			],
+			"internalConsoleOptions": "openOnSessionStart",
+			"console": "integratedTerminal",
+			"sourceMaps": true
+		},
+		{
+			"name": "Debug hardhat ts script",
 			"type": "node",
 			"request": "launch",
 			"console": "integratedTerminal",
@@ -16,7 +29,7 @@
 			]
 		},
 		{
-			"name": "Hardhat Individual Test",
+			"name": "Debug harthat ts test",
 			"type": "node",
 			"request": "launch",
 			"console": "integratedTerminal",
