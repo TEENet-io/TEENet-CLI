@@ -1,4 +1,4 @@
-interface Task {
+export interface Task {
 	id: string;
 	owner: string;
 	rewardPerNode: number;
@@ -7,7 +7,7 @@ interface Task {
 	maxNodeNum: number;
 }
 
-interface Node {
+export interface Node {
 	pk: string;
 	owner: string;
 	teeType: string;
@@ -15,9 +15,7 @@ interface Node {
 	attestation: string;
 }
 
-interface Code {
+export interface Code {
 	hash: string;
 	url: string;
 }
-
-export { Task, Node, Code }
