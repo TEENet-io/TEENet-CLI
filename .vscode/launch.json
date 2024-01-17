@@ -5,6 +5,22 @@
 	"version": "0.2.0",
 	"configurations": [
 		{
+			"name": "Debug ts script",
+			"type": "node",
+			"request": "launch",
+			"cwd": "${workspaceRoot}",
+			"args": [
+				"${relativeFile}"
+			],
+			"runtimeArgs": [
+				"-r",
+				"ts-node/register"
+			],
+			"internalConsoleOptions": "openOnSessionStart",
+			"console": "integratedTerminal",
+			"sourceMaps": true
+		},
+		{
 			"name": "Debug mocha ts test",
 			"type": "node",
 			"request": "launch",
