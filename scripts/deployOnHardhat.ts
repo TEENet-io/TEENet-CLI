@@ -1,6 +1,7 @@
-import { ethers } from "hardhat";
+import { ethers } from "ethers";
 import { writeFileSync } from "fs";
 import { join } from "path";
+import { artifacts } from "hardhat";
 
 interface Config {
 	contractAddr: {
@@ -15,22 +16,21 @@ interface Config {
 }
 
 async function main() {
-	const [backend, ...otherAccounts] = await ethers.getSigners();
+	const provider = new ethers.JsonRpcProvider("http://localhost:8545");
+	const [backend, ...otherAccounts] = await provider.listAccounts();
 
-	// Deploy contract CodeInfo
-	const CodeInfo = await ethers.getContractFactory("CodeInfo");
-	const codeInfo = await CodeInfo.deploy(backend);
-	const codeInfoAddr = await codeInfo.getAddress();
+	const deployContract = async function(contractName: string, signer: ethers.Signer, args: any[]) {
+		const artifact = await artifacts.readArtifact(contractName);
+		const factory = new ethers.ContractFactory(artifact.abi, artifact.bytecode, signer);
+		const base = await factory.deploy(...args);
+		await base.waitForDeployment();
+		const contractAddress = await base.getAddress();
+		return contractAddress;
+	}
 
-	// Deploy contract NodeInfo
-	const NodeInfo = await ethers.getContractFactory("NodeInfo");
-	const nodeInfo = await NodeInfo.deploy(backend);
-	const nodeInfoAddr = await nodeInfo.getAddress();
-
-	// Deploy contract TaskMgr
-	const TaskMgr = await ethers.getContractFactory("TaskMgr");
-	const taskMgr = await TaskMgr.deploy(backend, nodeInfoAddr);
-	const taskMgrAddr = await taskMgr.getAddress();
+	const codeInfoAddr = await deployContract("CodeInfo", backend, [backend.address]);
+	const nodeInfoAddr = await deployContract("NodeInfo", backend, [backend.address]);
+	const taskMgrAddr = await deployContract("TaskMgr", backend, [backend.address, nodeInfoAddr]);
 
 	// Output contract address and account
 	const config: Config = {
