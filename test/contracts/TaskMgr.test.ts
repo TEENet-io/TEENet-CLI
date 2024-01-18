@@ -1,7 +1,7 @@
 import { loadFixture, time } from "@nomicfoundation/hardhat-toolbox/network-helpers";
 import { ethers } from "hardhat";
 import { expect } from "chai";
-import { Task, Node } from "../../src/types";
+import { Task, Node, Code } from "../../src/types";
 
 describe("TaskMgr", function () {
 	async function deployFixture() {
@@ -10,18 +10,34 @@ describe("TaskMgr", function () {
 		const NodeInfo = await ethers.getContractFactory("NodeInfo");
 		const nodeInfo = await NodeInfo.deploy(second.address);
 
-		const TaskMgr = await ethers.getContractFactory("TaskMgr");
-		const taskMgr = await TaskMgr.deploy(second.address, await nodeInfo.getAddress());
+		const CodeInfo = await ethers.getContractFactory("CodeInfo");
+		const codeInfo = await CodeInfo.deploy(second.address);
 
-		const id1 = ethers.hexlify(ethers.randomBytes(32));
-		const id2 = ethers.hexlify(ethers.randomBytes(32));
+		const TaskMgr = await ethers.getContractFactory("TaskMgr");
+		const taskMgr = await TaskMgr.deploy(second.address, await nodeInfo.getAddress(), await codeInfo.getAddress());
+
+		const randBytes = (numBytes: number) => {
+			return ethers.hexlify(ethers.randomBytes(numBytes));
+		}
+
+		const id1 = randBytes(32);
+		const id2 = randBytes(32);
+		const codeHash = randBytes(32);
+
+		const code: Code = {
+			hash: codeHash,
+			url: "https://url.com"
+		}
+		await codeInfo.connect(second).addOrUpdate(code);
+
 		const task: Task = {
 			id: id1,
 			owner: ethers.ZeroAddress,
 			rewardPerNode: 100,
 			start: 0,
 			numDays: 1,
-			maxNodeNum: 2
+			maxNodeNum: 2,
+			codeHash: codeHash
 		}
 
 		const emptyTask: Task = {
@@ -30,7 +46,8 @@ describe("TaskMgr", function () {
 			rewardPerNode: 0,
 			start: 0,
 			numDays: 0,
-			maxNodeNum: 0
+			maxNodeNum: 0,
+			codeHash: ethers.ZeroHash
 		}
 
 		const nodes: Node[] = [];
@@ -50,7 +67,7 @@ describe("TaskMgr", function () {
 			nodes.push(node);
 		}
 
-		return { taskMgr, first, second, otherAccounts, id1, id2, task, emptyTask, nodeInfo, nodes };
+		return { taskMgr, first, second, otherAccounts, id1, id2, task, emptyTask, nodeInfo, nodes, randBytes };
 	}
 
 	describe("Deployment", function () {
@@ -88,6 +105,20 @@ describe("TaskMgr", function () {
 
 			expect(await taskMgr.taskExists(id1)).to.equal(true);
 			expect((await taskMgr.getTask(id1)).owner).to.deep.equal(first.address);
+		});
+		it("Should not allow non-existing code hash", async function () {
+			const { taskMgr, id1, task, randBytes } = await loadFixture(deployFixture);
+
+			const deposit = task.rewardPerNode * task.maxNodeNum;
+			
+			const t: Task = {...task};
+			t.codeHash = randBytes(32);
+			
+			try {
+				await taskMgr.add(task, {value: deposit});
+			} catch (err: any) {
+				expect(err.message).to.include("Code hash not found");
+			}
 		});
 		it("Should log the correct event and add the correct record", async function () {
 			const { taskMgr, second, id1, id2, task, emptyTask } = await loadFixture(deployFixture);

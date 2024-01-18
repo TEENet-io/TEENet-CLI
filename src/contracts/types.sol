@@ -21,4 +21,5 @@ struct Task {
 	uint256 start;
 	uint256 numDays; 		// in days
 	uint256 maxNodeNum;
+	bytes32 codeHash;
 }

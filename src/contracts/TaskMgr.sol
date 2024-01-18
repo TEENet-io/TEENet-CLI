@@ -4,11 +4,14 @@ import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {EnumerableMap} from"@openzeppelin/contracts/utils/structs/EnumerableMap.sol";
 import {Task, Node} from "./types.sol";
 import {NodeInfo} from "./NodeInfo.sol";
+import {CodeInfo} from "./CodeInfo.sol";
 
 contract TaskMgr is Ownable {
 	using EnumerableMap for EnumerableMap.Bytes32ToUintMap;
 
     address nodeInfoContract;
+	address codeInfoContract;
+
 	bytes32[] ids;									// task ids
     mapping(bytes32 => Task) tasks; 				// task id => task
 	// task id => (node pk => 1: not yet rewarded, 2: rewarded)
@@ -23,9 +26,11 @@ contract TaskMgr is Ownable {
 
     constructor(
         address initOwner,
-        address _nodeInfoContract
+        address _nodeInfoContract,	
+		address _codeInfoContract
     ) Ownable(initOwner) {
         nodeInfoContract = _nodeInfoContract;
+		codeInfoContract = _codeInfoContract;
     }
 
 	/**
@@ -36,6 +41,7 @@ contract TaskMgr is Ownable {
 	 * 4. Deposit must be equal or larger than (rewardPerNode * maxNodeNum)
 	 * 5. If owner is left blank (i.e., zero address), msg.sender will be assigned
 	 * 6. Starting time will be set to block.timestamp
+	 * 7. Code hash must exist in contract CodeInfo
 	 * 
 	 * @param task new task
 	 */
@@ -46,6 +52,9 @@ contract TaskMgr is Ownable {
 		require(task.numDays > 0, "Invalid duration");
 		require(task.rewardPerNode > 0, "Invalid reward per node");
 		require(msg.value >= task.rewardPerNode * task.maxNodeNum, "Insufficient deposit");
+
+		CodeInfo codeInfo = CodeInfo(codeInfoContract);
+		require(codeInfo.codeExists(task.codeHash), "Code hash not found");
 
         task.start = block.timestamp;
 		if (task.owner == address(0)) {
