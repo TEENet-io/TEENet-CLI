@@ -112,6 +112,7 @@ describe("TaskMgr", function () {
 			await taskMgr.add(task, {value: deposit});
 
 			expect(await taskMgr.deposit(id1)).to.equal(deposit);
+			expect(await taskMgr.getTaskIds()).to.deep.equal([id1]);
 		});
 	});
 	describe("join", function () {

@@ -9,6 +9,7 @@ contract TaskMgr is Ownable {
 	using EnumerableMap for EnumerableMap.Bytes32ToUintMap;
 
     address nodeInfoContract;
+	bytes32[] ids;									// task ids
     mapping(bytes32 => Task) tasks; 				// task id => task
 	// task id => (node pk => 1: not yet rewarded, 2: rewarded)
     mapping(bytes32 => EnumerableMap.Bytes32ToUintMap) nodeList;	
@@ -52,9 +53,14 @@ contract TaskMgr is Ownable {
 		}
         tasks[task.id] = task;
 		deposit[task.id] = msg.value;
+		ids.push(task.id);
 
 		emit Add(task.id, task);
     }
+
+	function getTaskIds() external view returns (bytes32[] memory) {
+		return ids;
+	}
 
     function getTask(bytes32 id) external view returns (Task memory) {
 		return tasks[id];
