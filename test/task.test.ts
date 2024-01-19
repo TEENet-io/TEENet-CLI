@@ -1,6 +1,6 @@
 import { loadFixture, time } from "@nomicfoundation/hardhat-toolbox/network-helpers";
 import { ethers, network, artifacts } from "hardhat";
-import { expect } from "chai";
+import { expect, assert } from "chai";
 import { Task, Node } from "../src/types";
 import { TaskManager } from "../src/task";
 
@@ -83,7 +83,7 @@ describe("TaskMgr", function () {
 			const values = await taskMgr.getTask(tasks[0].id);
 			tasks[0].start = Number(values[3]);
 
-			expect(await taskManager.joinTask(otherAccounts[9], tasks[0].id, nodes[0].pk)).to.be.true;
+			expect(await taskManager.joinTask(otherAccounts[9], tasks[0].id, nodes[0].pk)).to.be.null;
 			expect(await taskMgr.getNodeList(tasks[0].id)).to.deep.equal([nodes[0].pk]);
 		});
 	});
@@ -112,6 +112,9 @@ describe("TaskMgr", function () {
 			// +100 to counter the block intervals
 			time.increase(24 * 3600 + 100);
 			let actual = await taskManager.getActiveTasks();
+			if(actual instanceof Error) {
+				assert.fail(actual.message);
+			}
 			expect(test(tasks[1], actual)).to.be.true;
 			expect(test(tasks[2], actual)).to.be.true;
 			expect(test(tasks[3], actual)).to.be.true;
@@ -119,7 +122,7 @@ describe("TaskMgr", function () {
 	});
 
 	describe("getTaskIds", function () {
-		it("should get correct task ids", async function () {
+		it("hould get correct task ids", async function () {
 			const { taskMgr, tasks, taskManager, otherAccounts } = await loadFixture(deployFixture);
 
 			expect(await taskManager.getTaskIds()).to.deep.equal([]);

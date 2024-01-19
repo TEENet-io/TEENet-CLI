@@ -16,52 +16,70 @@ export class TaskManager {
 		this._abi = opt.abi;
 	}
 
-	public async getTaskIds(): Promise<string[]> {	
-		const contract = new ethers.Contract(this._addr, this._abi, this._provider);
-		const taskIds: string[] = await contract.getTaskIds();
-		return taskIds;
-	}
-
-	public async getActiveTasks(): Promise<Task[]> {
-		const taskIds = await this.getTaskIds();
-		const tasks: Task[] = [];
-
-		// Get the latest block timestamp
-		const block = await this._provider.getBlock("latest");
-		if(block == null) {
-			throw new Error("Failed to get latest block");
-		}
-		const now = block.timestamp;
-
-		for (const taskId of taskIds) {
-			const contract = new ethers.Contract(this._addr, this._abi, this._provider);
-			const values = await contract.getTask(taskId);
-			const task = this._marshalTask(values);
-
-			const isExpired = this._isTaskExpired(task, now);
-			if (!isExpired) {
-				tasks.push(task);
-			}
-		}
-		return tasks;
-	}
-
-	public async joinTask(signer: ethers.Signer, taskId: string, teePk: string): Promise<boolean> {
-		const contract = new ethers.Contract(this._addr, this._abi, signer);
-		
+	public async getTaskIds(): Promise<string[] | Error> {
 		try {
-			await contract.join(taskId, teePk);
-		} catch(err: any) {	
-			throw new Error(err.message || err);
+			const contract = new ethers.Contract(this._addr, this._abi, this._provider);
+			return await contract.getTaskIds();
+		} catch (err: any) {
+			return new Error(err);
 		}
-		
-		return true;
 	}
 
-	public async getNodeList(taskId: string): Promise<string[]> {
-		const contract = new ethers.Contract(this._addr, this._abi, this._provider);
-		const nodeList: string[] = await contract.getNodeList(taskId);
-		return nodeList;
+	public async getActiveTasks(): Promise<Task[] | Error> {
+		try {
+			const taskIds = await this.getTaskIds();
+
+			if (taskIds instanceof Error) {
+				return taskIds;
+			}
+
+			const tasks: Task[] = [];
+
+			// Get the latest block timestamp
+			const block = await this._provider.getBlock("latest");
+			if (block == null) {
+				return new Error("Failed to get latest block");
+			}
+			const now = block.timestamp;
+
+			for (const taskId of taskIds) {
+				const contract = new ethers.Contract(this._addr, this._abi, this._provider);
+				const values = await contract.getTask(taskId);
+				const task = this._marshalTask(values);
+
+				const isExpired = this._isTaskExpired(task, now);
+				if (!isExpired) {
+					tasks.push(task);
+				}
+			}
+			return tasks;
+		} catch (err: any) {
+			return new Error(err);
+		}
+	}
+
+	public async joinTask(signer: ethers.Signer, taskId: string, teePk: string): Promise<Error | null> {
+		try {
+			const contract = new ethers.Contract(this._addr, this._abi, signer);
+			await contract.join(taskId, teePk);
+			return null;
+		} catch (err: any) {
+			return new Error(err);
+		}
+	}
+
+	public async getNodeList(taskId: string): Promise<string[] | null | Error> {
+		try {
+			const contract = new ethers.Contract(this._addr, this._abi, this._provider);
+			if (!await contract.taskExists(taskId)) {
+				return null;
+			}
+
+			const nodeList: string[] = await contract.getNodeList(taskId);
+			return nodeList;
+		} catch (err: any) {
+			return new Error(err);
+		}
 	}
 
 	private _marshalTask(values: any[]): Task {
@@ -78,6 +96,6 @@ export class TaskManager {
 
 	private _isTaskExpired(task: Task, now: number): boolean {
 		const expiredAt = task.start + task.numDays * 24 * 3600;
-		return  expiredAt < now;
+		return expiredAt < now;
 	}
 }
