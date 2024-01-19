@@ -41,8 +41,7 @@ export class NodeManager {
 	public async remove(backend: ethers.Signer, id: string): Promise<Error | null> {
 		try {
 			const contract = new ethers.Contract(this._addr, this._abi, backend);
-			const node = this._marshalNode(await contract.getNodeInfo(id));
-			if (BigInt(node.pk) == 0n) {
+			if (!(await contract.nodeExists(id))) {
 				return new Error("Node does not exist");
 			}
 			await contract.remove(id);
