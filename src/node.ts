@@ -19,9 +19,10 @@ export class NodeManager {
 	public async getNodeInfo(id: string): Promise<Node | null | Error> {
 		try {
 			const contract = new ethers.Contract(this._addr, this._abi, this._provider);
-			const values: any[] = await contract.getNodeInfo(id);
-			const node = this._marshalNode(values);
-			return BigInt(node.pk) == 0n ? null : node;
+			if(!(await contract.nodeExists(id))) {
+				return null;
+			}
+			return this._marshalNode(await contract.getNodeInfo(id));
 		} catch (err: any) {
 			return new Error(err);
 		}
@@ -31,11 +32,10 @@ export class NodeManager {
 		try {
 			const contract = new ethers.Contract(this._addr, this._abi, backend);
 			await contract.addOrUpdate(node);
+			return null;
 		} catch (err: any) {
 			return new Error(err);
 		}
-
-		return null;
 	}
 
 	public async remove(backend: ethers.Signer, id: string): Promise<Error | null> {
@@ -45,11 +45,10 @@ export class NodeManager {
 				return new Error("Node does not exist");
 			}
 			await contract.remove(id);
+			return null;
 		} catch (err: any) {
 			return new Error(err);
 		}
-
-		return null;
 	}
 
 	private _marshalNode(values: any[]): Node {
