@@ -5,6 +5,7 @@ export interface Task {
 	start: number;
 	numDays: number;
 	maxNodeNum: number;
+	codeHash: string;
 }
 
 export interface Node {
