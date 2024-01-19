@@ -3,7 +3,6 @@ import { ethers, network, artifacts } from "hardhat";
 import { expect, assert } from "chai";
 import { Task, Node } from "../src/types";
 import { TaskManager } from "../src/task";
-import { task } from "hardhat/config";
 
 describe("TaskMgr", function () {
 	async function deployFixture() {
