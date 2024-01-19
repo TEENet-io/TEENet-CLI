@@ -1,8 +1,9 @@
-import { loadFixture, time } from "@nomicfoundation/hardhat-toolbox/network-helpers";
+import { loadFixture } from "@nomicfoundation/hardhat-toolbox/network-helpers";
 import { ethers, network, artifacts } from "hardhat";
 import { expect, assert } from "chai";
 import { Task, Node } from "../src/types";
 import { TaskManager } from "../src/task";
+import { task } from "hardhat/config";
 
 describe("TaskMgr", function () {
 	async function deployFixture() {
@@ -88,8 +89,8 @@ describe("TaskMgr", function () {
 		});
 	});
 
-	describe("getActiveTasks", function () {
-		it("Should not get expired tasks", async function () {
+	describe("getTasks", function () {
+		it("Should get added tasks", async function () {
 			const { taskMgr, tasks, taskManager, otherAccounts } = await loadFixture(deployFixture);
 
 			for (let i = 0; i < tasks.length; i++) {
@@ -103,21 +104,22 @@ describe("TaskMgr", function () {
 			const test = function (task: Task, tasks: Task[]): boolean {
 				for (const t of tasks) {
 					if (t.id == task.id) {
+						expect(t).to.deep.equal(task);
 						return true;
 					}
 				}
 				return false;
 			}
-
-			// +100 to counter the block intervals
-			time.increase(24 * 3600 + 100);
-			let actual = await taskManager.getActiveTasks();
-			if(actual instanceof Error) {
-				assert.fail(actual.message);
+			
+			const ret = await taskManager.getTasks();
+			if(ret instanceof Error) {
+				assert.fail(ret.message);
 			}
-			expect(test(tasks[1], actual)).to.be.true;
-			expect(test(tasks[2], actual)).to.be.true;
-			expect(test(tasks[3], actual)).to.be.true;
+
+			expect(ret.length).to.equal(tasks.length);
+			ret.forEach((task: Task) => {
+				expect(test(task, tasks)).to.be.true;
+			});
 		});
 	});
 

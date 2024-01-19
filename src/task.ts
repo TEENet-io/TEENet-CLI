@@ -34,32 +34,18 @@ export class TaskManager {
 		}
 	}
 
-	public async getActiveTasks(): Promise<Task[] | Error> {
+	public async getTasks(): Promise<Task[] | Error> {
 		try {
 			const taskIds = await this.getTaskIds();
-
 			if (taskIds instanceof Error) {
 				return taskIds;
 			}
 
 			const tasks: Task[] = [];
-
-			// Get the latest block timestamp
-			const block = await this._provider.getBlock("latest");
-			if (block == null) {
-				return new Error("Failed to get latest block");
-			}
-			const now = block.timestamp;
-
 			for (const taskId of taskIds) {
 				const contract = new ethers.Contract(this._addr, this._abi, this._provider);
 				const values = await contract.getTask(taskId);
-				const task = this._marshalTask(values);
-
-				const isExpired = this._isTaskExpired(task, now);
-				if (!isExpired) {
-					tasks.push(task);
-				}
+				tasks.push(this._marshalTask(values));
 			}
 			return tasks;
 		} catch (err: any) {
@@ -101,10 +87,5 @@ export class TaskManager {
 		task.maxNodeNum = Number(values[5]);
 		task.codeHash = values[6];
 		return task;
-	}
-
-	private _isTaskExpired(task: Task, now: number): boolean {
-		const expiredAt = task.start + task.numDays * 24 * 3600;
-		return expiredAt < now;
 	}
 }
