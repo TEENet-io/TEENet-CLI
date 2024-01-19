@@ -9,8 +9,8 @@ import {CodeInfo} from "./CodeInfo.sol";
 contract TaskMgr is Ownable {
 	using EnumerableMap for EnumerableMap.Bytes32ToUintMap;
 
-    address nodeInfoContract;
-	address codeInfoContract;
+    address public nodeInfoContract;
+	address public codeInfoContract;
 
 	bytes32[] ids;									// task ids
     mapping(bytes32 => Task) tasks; 				// task id => task
