@@ -16,6 +16,15 @@ export class TaskManager {
 		this._abi = opt.abi;
 	}
 
+	public async taskExists(id: string): Promise<boolean | Error> {
+		try {
+			const contract = new ethers.Contract(this._addr, this._abi, this._provider);
+			return contract.taskExists(id);
+		} catch (err: any) {
+			return new Error(err);
+		}
+	}
+
 	public async getTaskIds(): Promise<string[] | Error> {
 		try {
 			const contract = new ethers.Contract(this._addr, this._abi, this._provider);

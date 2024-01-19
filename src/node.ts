@@ -16,6 +16,15 @@ export class NodeManager {
 		this._abi = opt.abi;
 	}
 
+	public async nodeExists(id: string): Promise<boolean | Error> {
+		try {
+			const contract = new ethers.Contract(this._addr, this._abi, this._provider);
+			return contract.nodeExists(id);
+		} catch (err: any) {
+			return new Error(err);
+		}
+	}
+
 	public async getNodeInfo(id: string): Promise<Node | null | Error> {
 		try {
 			const contract = new ethers.Contract(this._addr, this._abi, this._provider);

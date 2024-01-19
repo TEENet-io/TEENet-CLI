@@ -16,6 +16,15 @@ export class CodeManager {
 		this._abi = opt.abi;
 	}
 
+	public async codeExists(hash: string): Promise<boolean | Error> {
+		try {
+			const contract = new ethers.Contract(this._addr, this._abi, this._provider);
+			return contract.codeExists(hash);
+		} catch (err: any) {
+			return new Error(err);
+		}
+	}
+
 	public async getCode(hash: string): Promise<Code | null | Error> {
 		try {
 			const contract = new ethers.Contract(this._addr, this._abi, this._provider);
