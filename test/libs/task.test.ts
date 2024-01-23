@@ -73,6 +73,22 @@ describe("TaskMgr", function () {
 
 		return { provider, taskManager, taskMgr, backend, otherAccounts, tasks, nodes, randBytes };
 	}
+	
+	describe("addTask", function () {
+		it("Should fail with insufficient balance", async function () {
+			const { tasks, taskManager } = await loadFixture(deployFixture);
+
+			const task = {...tasks[0]};
+			const wallet = ethers.Wallet.createRandom();
+			task.owner = wallet.address;
+
+			expect((await taskManager.addTask(wallet, tasks[0]))!.message).to.be.equal("Insufficient balance");
+		});
+		it("Should add task without error", async function () {
+			const { tasks, taskManager, otherAccounts } = await loadFixture(deployFixture);
+			expect(await taskManager.addTask(otherAccounts[0], tasks[0])).to.be.null;
+		});
+	});
 
 	describe("joinTask", function () {
 		it("Should join task", async function () {

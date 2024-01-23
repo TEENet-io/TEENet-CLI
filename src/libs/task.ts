@@ -77,6 +77,23 @@ export class TaskManager {
 		}
 	}
 
+	public async addTask(signer: ethers.Signer, task: Task): Promise<Error | null> {
+		try {
+			// check balance
+			const deposit = BigInt(task.rewardPerNode) * BigInt(task.maxNodeNum);
+			const balance = await this._provider.getBalance(await signer.getAddress());
+			if (balance < deposit) {
+				return new Error("Insufficient balance");
+			}
+
+			const contract = new ethers.Contract(this._addr, this._abi, signer);
+			await contract.add(task, { value: deposit});
+			return null;
+		} catch (err: any) {
+			return new Error(err);
+		}
+	}
+
 	private _marshalTask(values: any[]): Task {
 		const task: Task = {} as Task;
 		task.id = values[0];
