@@ -1,8 +1,8 @@
-import { ethers } from "ethers";
+import { Provider, Signer, Contract } from "ethers";
 import { Code, Params } from "./types";
 
 export class CodeManager {
-	private readonly _provider: ethers.Provider;
+	private readonly _provider: Provider;
 	private readonly _addr: string;
 	private readonly _abi: any[];
 
@@ -14,7 +14,7 @@ export class CodeManager {
 
 	public async codeExists(hash: string): Promise<boolean | Error> {
 		try {
-			const contract = new ethers.Contract(this._addr, this._abi, this._provider);
+			const contract = new Contract(this._addr, this._abi, this._provider);
 			return contract.codeExists(hash);
 		} catch (err: any) {
 			return new Error(err);
@@ -23,7 +23,7 @@ export class CodeManager {
 
 	public async getCode(hash: string): Promise<Code | null | Error> {
 		try {
-			const contract = new ethers.Contract(this._addr, this._abi, this._provider);
+			const contract = new Contract(this._addr, this._abi, this._provider);
 			if(!(await contract.codeExists(hash))) {
 				return null;
 			}
@@ -33,9 +33,9 @@ export class CodeManager {
 		}
 	}
 
-	public async addOrUpdate(backend: ethers.Signer, code: Code): Promise<Error | null> {
+	public async addOrUpdate(backend: Signer, code: Code): Promise<Error | null> {
 		try {
-			const contract = new ethers.Contract(this._addr, this._abi, backend);
+			const contract = new Contract(this._addr, this._abi, backend);
 			await contract.addOrUpdate(code);
 			return null;
 		} catch (err: any) {
@@ -43,9 +43,9 @@ export class CodeManager {
 		}
 	}
 
-	public async remove(backend: ethers.Signer, hash: string): Promise<Error | null> {
+	public async remove(backend: Signer, hash: string): Promise<Error | null> {
 		try {
-			const contract = new ethers.Contract(this._addr, this._abi, backend);
+			const contract = new Contract(this._addr, this._abi, backend);
 			if (!(await contract.codeExists(hash))) {
 				return new Error("Code does not exist");
 			}

@@ -1,8 +1,8 @@
-import { ethers } from "ethers";
+import { Provider, Signer, Contract } from "ethers";
 import { Node, Params } from "./types";
 
 export class NodeManager {
-	private readonly _provider: ethers.Provider;
+	private readonly _provider: Provider;
 	private readonly _addr: string;
 	private readonly _abi: any[];
 
@@ -14,7 +14,7 @@ export class NodeManager {
 
 	public async nodeExists(pk: string): Promise<boolean | Error> {
 		try {
-			const contract = new ethers.Contract(this._addr, this._abi, this._provider);
+			const contract = new Contract(this._addr, this._abi, this._provider);
 			return contract.nodeExists(pk);
 		} catch (err: any) {
 			return new Error(err);
@@ -23,7 +23,7 @@ export class NodeManager {
 
 	public async getNodeInfo(pk: string): Promise<Node | null | Error> {
 		try {
-			const contract = new ethers.Contract(this._addr, this._abi, this._provider);
+			const contract = new Contract(this._addr, this._abi, this._provider);
 			if(!(await contract.nodeExists(pk))) {
 				return null;
 			}
@@ -33,9 +33,9 @@ export class NodeManager {
 		}
 	}
 
-	public async addOrUpdate(backend: ethers.Signer, node: Node): Promise<Error | null> {
+	public async addOrUpdate(backend: Signer, node: Node): Promise<Error | null> {
 		try {
-			const contract = new ethers.Contract(this._addr, this._abi, backend);
+			const contract = new Contract(this._addr, this._abi, backend);
 			await contract.addOrUpdate(node);
 			return null;
 		} catch (err: any) {
@@ -43,9 +43,9 @@ export class NodeManager {
 		}
 	}
 
-	public async remove(backend: ethers.Signer, pk: string): Promise<Error | null> {
+	public async remove(backend: Signer, pk: string): Promise<Error | null> {
 		try {
-			const contract = new ethers.Contract(this._addr, this._abi, backend);
+			const contract = new Contract(this._addr, this._abi, backend);
 			if (!(await contract.nodeExists(pk))) {
 				return new Error("Node does not exist");
 			}

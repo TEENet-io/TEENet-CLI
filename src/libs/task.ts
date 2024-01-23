@@ -1,8 +1,8 @@
-import { ethers } from "ethers";
+import { Provider, Signer, Contract } from "ethers";
 import { Task, Params } from "./types";
 
 export class TaskManager {
-	private readonly _provider: ethers.Provider;
+	private readonly _provider: Provider;
 	private readonly _addr: string;
 	private readonly _abi: any[];
 
@@ -14,7 +14,7 @@ export class TaskManager {
 
 	public async taskExists(id: string): Promise<boolean | Error> {
 		try {
-			const contract = new ethers.Contract(this._addr, this._abi, this._provider);
+			const contract = new Contract(this._addr, this._abi, this._provider);
 			return contract.taskExists(id);
 		} catch (err: any) {
 			return new Error(err);
@@ -23,7 +23,7 @@ export class TaskManager {
 
 	public async getTaskIds(): Promise<string[] | Error> {
 		try {
-			const contract = new ethers.Contract(this._addr, this._abi, this._provider);
+			const contract = new Contract(this._addr, this._abi, this._provider);
 			return await contract.getTaskIds();
 		} catch (err: any) {
 			return new Error(err);
@@ -32,7 +32,7 @@ export class TaskManager {
 
 	public async getTask(id: string): Promise<Task | Error> {
 		try {
-			const contract = new ethers.Contract(this._addr, this._abi, this._provider);
+			const contract = new Contract(this._addr, this._abi, this._provider);
 			const values = await contract.getTask(id);
 			return this._marshalTask(values);
 		} catch (err: any) {
@@ -40,9 +40,9 @@ export class TaskManager {
 		}
 	}
 
-	public async joinTask(signer: ethers.Signer, id: string, teePk: string): Promise<Error | null> {
+	public async joinTask(signer: Signer, id: string, teePk: string): Promise<Error | null> {
 		try {
-			const contract = new ethers.Contract(this._addr, this._abi, signer);
+			const contract = new Contract(this._addr, this._abi, signer);
 			await contract.join(id, teePk);
 			return null;
 		} catch (err: any) {
@@ -52,7 +52,7 @@ export class TaskManager {
 
 	public async getNodeList(id: string): Promise<string[] | null | Error> {
 		try {
-			const contract = new ethers.Contract(this._addr, this._abi, this._provider);
+			const contract = new Contract(this._addr, this._abi, this._provider);
 			if (!await contract.taskExists(id)) {
 				return null;
 			}
@@ -63,7 +63,7 @@ export class TaskManager {
 		}
 	}
 
-	public async addTask(signer: ethers.Signer, task: Task): Promise<Error | null> {
+	public async addTask(signer: Signer, task: Task): Promise<Error | null> {
 		try {
 			// check balance
 			const deposit = BigInt(task.rewardPerNode) * BigInt(task.maxNodeNum);
@@ -72,7 +72,7 @@ export class TaskManager {
 				return new Error("Insufficient balance");
 			}
 
-			const contract = new ethers.Contract(this._addr, this._abi, signer);
+			const contract = new Contract(this._addr, this._abi, signer);
 			await contract.add(task, { value: deposit});
 			return null;
 		} catch (err: any) {
@@ -80,9 +80,9 @@ export class TaskManager {
 		}
 	}
 
-	public async reward(signer: ethers.Signer, id: string, pks: string[]): Promise<Error | null> {
+	public async reward(signer: Signer, id: string, pks: string[]): Promise<Error | null> {
 		try {
-			const contract = new ethers.Contract(this._addr, this._abi, signer);
+			const contract = new Contract(this._addr, this._abi, signer);
 			await contract.reward(id, pks);
 			return null;
 		} catch (err: any) {
@@ -92,16 +92,16 @@ export class TaskManager {
 
 	public async balance(addr: string): Promise<bigint | Error> {
 		try {
-			const contract = new ethers.Contract(this._addr, this._abi, this._provider);
+			const contract = new Contract(this._addr, this._abi, this._provider);
 			return await contract.balance(addr);
 		} catch (err: any) {
 			return new Error(err);
 		}
 	}
 
-	public async withdraw(signer: ethers.Signer): Promise<Error | null> {
+	public async withdraw(signer: Signer): Promise<Error | null> {
 		try {
-			const contract = new ethers.Contract(this._addr, this._abi, signer);
+			const contract = new Contract(this._addr, this._abi, signer);
 			await contract.withdraw();
 			return null;
 		} catch (err: any) {
