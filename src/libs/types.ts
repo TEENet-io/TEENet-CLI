@@ -1,10 +1,10 @@
 export interface Task {
 	id: string;
 	owner: string;
-	rewardPerNode: number;
-	start: number;
-	numDays: number;
-	maxNodeNum: number;
+	rewardPerNode: bigint;
+	start: bigint;
+	numDays: bigint;
+	maxNodeNum: bigint;
 	codeHash: string;
 }
 
