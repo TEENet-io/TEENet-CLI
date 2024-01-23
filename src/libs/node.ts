@@ -16,22 +16,22 @@ export class NodeManager {
 		this._abi = opt.abi;
 	}
 
-	public async nodeExists(id: string): Promise<boolean | Error> {
+	public async nodeExists(pk: string): Promise<boolean | Error> {
 		try {
 			const contract = new ethers.Contract(this._addr, this._abi, this._provider);
-			return contract.nodeExists(id);
+			return contract.nodeExists(pk);
 		} catch (err: any) {
 			return new Error(err);
 		}
 	}
 
-	public async getNodeInfo(id: string): Promise<Node | null | Error> {
+	public async getNodeInfo(pk: string): Promise<Node | null | Error> {
 		try {
 			const contract = new ethers.Contract(this._addr, this._abi, this._provider);
-			if(!(await contract.nodeExists(id))) {
+			if(!(await contract.nodeExists(pk))) {
 				return null;
 			}
-			return this._marshalNode(await contract.getNodeInfo(id));
+			return this._marshalNode(await contract.getNodeInfo(pk));
 		} catch (err: any) {
 			return new Error(err);
 		}
@@ -47,13 +47,13 @@ export class NodeManager {
 		}
 	}
 
-	public async remove(backend: ethers.Signer, id: string): Promise<Error | null> {
+	public async remove(backend: ethers.Signer, pk: string): Promise<Error | null> {
 		try {
 			const contract = new ethers.Contract(this._addr, this._abi, backend);
-			if (!(await contract.nodeExists(id))) {
+			if (!(await contract.nodeExists(pk))) {
 				return new Error("Node does not exist");
 			}
-			await contract.remove(id);
+			await contract.remove(pk);
 			return null;
 		} catch (err: any) {
 			return new Error(err);
