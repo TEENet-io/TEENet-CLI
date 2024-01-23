@@ -107,7 +107,7 @@ describe("TaskMgr", function () {
 			expect((await taskMgr.getTask(id1)).owner).to.deep.equal(first.address);
 		});
 		it("Should not allow non-existing code hash", async function () {
-			const { taskMgr, id1, task, randBytes } = await loadFixture(deployFixture);
+			const { taskMgr, task, randBytes } = await loadFixture(deployFixture);
 
 			const deposit = task.rewardPerNode * task.maxNodeNum;
 			
