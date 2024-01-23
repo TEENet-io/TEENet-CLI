@@ -40,10 +40,10 @@ export class TaskManager {
 		}
 	}
 
-	public async joinTask(signer: Signer, id: string, teePk: string): Promise<Error | null> {
+	public async joinTask(signer: Signer, id: string, pk: string): Promise<Error | null> {
 		try {
 			const contract = new Contract(this._addr, this._abi, signer);
-			await contract.join(id, teePk);
+			await contract.join(id, pk);
 			return null;
 		} catch (err: any) {
 			return new Error(err);
