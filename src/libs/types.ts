@@ -1,3 +1,5 @@
+import { Provider } from 'ethers';
+
 export interface Task {
 	id: string;
 	owner: string;
@@ -19,4 +21,10 @@ export interface Node {
 export interface Code {
 	hash: string;
 	url: string;
+}
+
+export interface Params {
+	provider: Provider;
+	addr: string;
+	abi: any[];
 }

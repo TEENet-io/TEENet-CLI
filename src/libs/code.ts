@@ -1,19 +1,15 @@
 import { ethers } from "ethers";
-import { Code } from "./types";
+import { Code, Params } from "./types";
 
 export class CodeManager {
 	private readonly _provider: ethers.Provider;
 	private readonly _addr: string;
 	private readonly _abi: any[];
 
-	constructor(opt: {
-		provider: ethers.Provider
-		addr: string,
-		abi: any[]
-	}) {
-		this._provider = opt.provider;
-		this._addr = opt.addr;
-		this._abi = opt.abi;
+	constructor(params: Params) {
+		this._provider = params.provider;
+		this._addr = params.addr;
+		this._abi = params.abi;
 	}
 
 	public async codeExists(hash: string): Promise<boolean | Error> {
