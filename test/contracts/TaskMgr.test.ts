@@ -33,26 +33,26 @@ describe("TaskMgr", function () {
 		const task: Task = {
 			id: id1,
 			owner: ethers.ZeroAddress,
-			rewardPerNode: 100,
-			start: 0,
-			numDays: 1,
-			maxNodeNum: 2,
+			rewardPerNode: 100n,
+			start: 0n,
+			numDays: 1n,
+			maxNodeNum: 2n,
 			codeHash: codeHash
 		}
 
 		const emptyTask: Task = {
 			id: ethers.ZeroHash,
 			owner: ethers.ZeroAddress,
-			rewardPerNode: 0,
-			start: 0,
-			numDays: 0,
-			maxNodeNum: 0,
+			rewardPerNode: 0n,
+			start: 0n,
+			numDays: 0n,
+			maxNodeNum: 0n,
 			codeHash: ethers.ZeroHash
 		}
 
 		const nodes: Node[] = [];
 
-		for (let i = 0; i < task.maxNodeNum+1; i++) {
+		for (let i = 0; i < Number(task.maxNodeNum)+1; i++) {
 			const pk = ethers.hexlify(ethers.randomBytes(32));
 			const teeType = ethers.hexlify(ethers.randomBytes(4));
 			const teeVer = ethers.hexlify(ethers.randomBytes(4));
@@ -82,7 +82,7 @@ describe("TaskMgr", function () {
 			const { taskMgr, task } = await loadFixture(deployFixture);
 
 			try {
-				const deposit = task.rewardPerNode * task.maxNodeNum - 1;
+				const deposit = task.rewardPerNode * task.maxNodeNum - 1n;
 				await taskMgr.add(task, {value: deposit});
 			} catch (err: any) {
 				expect(err.message).to.include("Insufficient deposit");
@@ -123,11 +123,11 @@ describe("TaskMgr", function () {
 		it("Should log the correct event and add the correct record", async function () {
 			const { taskMgr, second, id1, id2, task, emptyTask } = await loadFixture(deployFixture);
 
-			const deposit = task.rewardPerNode * task.maxNodeNum + 1; 
+			const deposit = task.rewardPerNode * task.maxNodeNum + 1n; 
 			const ret = await taskMgr.connect(second).add(task, {value: deposit});
 
 			task.owner = second.address;
-			task.start = (await ethers.provider.getBlock('latest'))!.timestamp;
+			task.start = BigInt((await ethers.provider.getBlock('latest'))!.timestamp);
 			expect(ret).to.emit(taskMgr, "Add").withArgs(task.id, task);
 
 			expect(await taskMgr.taskExists(id1)).to.equal(true);
@@ -139,7 +139,7 @@ describe("TaskMgr", function () {
 		it("Should set the correct deposit value", async function () {
 			const { taskMgr, id1, task } = await loadFixture(deployFixture);
 
-			const deposit = task.rewardPerNode * task.maxNodeNum + 10; 
+			const deposit = task.rewardPerNode * task.maxNodeNum + 10n; 
 			await taskMgr.add(task, {value: deposit});
 
 			expect(await taskMgr.deposit(id1)).to.equal(deposit);
@@ -166,7 +166,7 @@ describe("TaskMgr", function () {
 			await taskMgr.add(task, {value: task.rewardPerNode * task.maxNodeNum});
 
 			// Increase time
-			await time.increase(time.duration.days(task.numDays));
+			await time.increase(time.duration.days(Number(task.numDays)));
 			console.log(`Time set to ${(await ethers.provider.getBlock('latest'))!.timestamp}`);
 
 			const t = await taskMgr.getTask(task.id);
@@ -268,7 +268,7 @@ describe("TaskMgr", function () {
 			const { taskMgr, second, task } = await loadFixture(deployFixture);
 
 			await taskMgr.add(task, {value: task.rewardPerNode * task.maxNodeNum});
-			time.increase(time.duration.days(task.numDays)-1);
+			time.increase(time.duration.days(Number(task.numDays))-1);
 			
 			try {
 				await taskMgr.connect(second).reward(task.id, []);
@@ -280,7 +280,7 @@ describe("TaskMgr", function () {
 			const { taskMgr, second, task } = await loadFixture(deployFixture);
 
 			await taskMgr.add(task, {value: task.rewardPerNode * task.maxNodeNum});
-			time.increase(time.duration.days(task.numDays));
+			time.increase(time.duration.days(Number(task.numDays)));
 
 			const pk = ethers.hexlify(ethers.randomBytes(32));
 
@@ -301,7 +301,7 @@ describe("TaskMgr", function () {
 				pks.push(nodes[i].pk);
 			}
 
-			time.increase(time.duration.days(task.numDays));
+			time.increase(time.duration.days(Number(task.numDays)));
 			expect(await taskMgr.connect(second).reward(task.id, pks))
 				.to.emit(taskMgr, "Reward").withArgs(task.id, pks);
 
@@ -318,7 +318,7 @@ describe("TaskMgr", function () {
 				await taskMgr.connect(otherAccounts[i]).join(task.id, nodes[i].pk);
 			}
 
-			time.increase(time.duration.days(task.numDays));
+			time.increase(time.duration.days(Number(task.numDays)));
 			await taskMgr.connect(second).reward(task.id, [nodes[0].pk]);
 
 			try {
@@ -336,7 +336,7 @@ describe("TaskMgr", function () {
 				await taskMgr.connect(otherAccounts[i]).join(task.id, nodes[i].pk);
 			}
 
-			time.increase(time.duration.days(task.numDays));
+			time.increase(time.duration.days(Number(task.numDays)));
 			expect(await taskMgr.connect(second).reward(task.id, [nodes[0].pk]))
 				.to.emit(taskMgr, "Reward").withArgs(task.id, [nodes[0].pk]);
 			expect(await taskMgr.connect(second).reward(task.id, [nodes[1].pk]))
@@ -374,7 +374,7 @@ describe("TaskMgr", function () {
 			const { taskMgr, second, task } = await loadFixture(deployFixture);
 
 			await taskMgr.add(task, {value: task.rewardPerNode * task.maxNodeNum});
-			time.increase(time.duration.days(task.numDays)-1);
+			time.increase(time.duration.days(Number(task.numDays))-1);
 
 			try {
 				await taskMgr.connect(second).withdrawDeposit(task.id);
@@ -387,7 +387,7 @@ describe("TaskMgr", function () {
 
 			const value = task.rewardPerNode * task.maxNodeNum;
 			await taskMgr.add(task, {value: value});
-			time.increase(time.duration.days(task.numDays));
+			time.increase(time.duration.days(Number(task.numDays)));
 
 			expect(await taskMgr.connect(second).withdrawDeposit(task.id))
 				.to.emit(taskMgr, "WithdrawDeposit").withArgs(task.id, value);
