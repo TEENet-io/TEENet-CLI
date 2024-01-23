@@ -1,7 +1,7 @@
 import { loadFixture } from "@nomicfoundation/hardhat-toolbox/network-helpers";
 import { ethers } from "hardhat";
 import { expect } from "chai";
-import { Node } from "../../src/types";
+import { Node } from "../../src/libs/types";
 
 describe("NodeInfo", function () {
 	async function deployFixture() {

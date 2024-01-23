@@ -5,12 +5,14 @@
   "main": "index.js",
   "scripts": {
     "testhh": "yarn hardhat test",
-	"runhh": "yarn hardhat run"
+    "runhh": "yarn hardhat run"
   },
   "author": "Peter Zhou",
   "license": "MIT",
   "dependencies": {
     "@openzeppelin/contracts": "^5.0.1",
+    "commander": "^11.1.0",
+    "figlet": "^1.7.0",
     "hardhat": "^2.19.4",
     "ts-node": "^10.9.2",
     "typescript": "^5.3.3"
