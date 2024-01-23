@@ -1,4 +1,4 @@
-import { loadFixture } from "@nomicfoundation/hardhat-toolbox/network-helpers";
+import { loadFixture, time } from "@nomicfoundation/hardhat-toolbox/network-helpers";
 import { ethers, network, artifacts } from "hardhat";
 import { expect, assert } from "chai";
 import { Task, Node } from "../../src/libs/types";
@@ -44,25 +44,17 @@ describe("TaskMgr", function () {
 			await nodeInfo.connect(backend).addOrUpdate(node);
 		}
 
-		const genTask = (owner: string, maxNodeNum: number, numDays: number) => {
+		const genTask = (owner: string, maxNodeNum: bigint, numDays: bigint) => {
 			return {
 				id: randBytes(32),
 				owner: owner,
-				rewardPerNode: 100,
-				start: 0,
+				rewardPerNode: 100n,
+				start: 0n,
 				numDays: numDays,
 				maxNodeNum: maxNodeNum,
 				codeHash: codeHash
 			}
 		};
-
-		// Generate tasks for testing
-		const tasks: Task[] = [
-			genTask(otherAccounts[0].address, 1, 1),
-			genTask(otherAccounts[1].address, 1, 2),
-			genTask(otherAccounts[2].address, 2, 2),
-			genTask(otherAccounts[2].address, 3, 3),
-		];
 
 		const provider = new ethers.BrowserProvider(network.provider);
 		const taskManager = new TaskManager({
@@ -71,76 +63,107 @@ describe("TaskMgr", function () {
 			abi: (await artifacts.readArtifact("TaskMgr")).abi
 		});
 
-		return { provider, taskManager, taskMgr, backend, otherAccounts, tasks, nodes, randBytes };
+		return { provider, taskManager, taskMgr, backend, otherAccounts, nodes, randBytes, genTask };
 	}
+
+	describe("withdraw", function () {
+		it("Should have zero balance after withdraw", async function () {
+			const { taskManager, genTask, otherAccounts, nodes, backend } = await loadFixture(deployFixture);
+
+			const task = genTask(otherAccounts[0].address, 1n, 1n);
+			expect(await taskManager.addTask(otherAccounts[0], task)).to.be.null;
+			expect(await taskManager.joinTask(otherAccounts[9], task.id, nodes[0].pk)).to.be.null;
+			time.increase(time.duration.days(Number(task.numDays)));
+			expect(await taskManager.reward(backend, task.id, [nodes[0].pk])).to.be.null;
+			expect(await taskManager.balance(otherAccounts[9].address)).to.equal(task.rewardPerNode);
+
+			expect(await taskManager.withdraw(otherAccounts[9])).to.be.null;
+			expect(await taskManager.balance(otherAccounts[9].address)).to.equal(0n);
+		});
+	});
+
+	describe("reward", function () {
+		it("Should set correct balances", async function () {
+			const { genTask, taskManager, otherAccounts, nodes, backend } = await loadFixture(deployFixture);
+
+			const _task = genTask(otherAccounts[0].address, 2n, 1n);
+			await taskManager.addTask(otherAccounts[0], _task);
+			const task = await taskManager.getTask(_task.id);
+			if (task instanceof Error) {
+				assert.fail(task.message);
+			}
+			task.start = _task.start;
+
+			expect(await taskManager.joinTask(otherAccounts[9], task.id, nodes[0].pk)).to.be.null;
+			expect(await taskManager.joinTask(otherAccounts[8], task.id, nodes[1].pk)).to.be.null;
+			expect(await taskManager.balance(otherAccounts[9].address)).to.equal(0n);
+			expect(await taskManager.balance(otherAccounts[8].address)).to.equal(0n);
+
+			time.increase(time.duration.days(Number(task.numDays)));
+
+			expect(await taskManager.reward(backend, task.id, [nodes[0].pk])).to.be.null;
+			expect(await taskManager.balance(otherAccounts[9].address)).to.equal(task.rewardPerNode);
+			expect(await taskManager.balance(otherAccounts[8].address)).to.equal(0n);
+		});
+	});	
 	
 	describe("addTask", function () {
 		it("Should fail with insufficient balance", async function () {
-			const { tasks, taskManager } = await loadFixture(deployFixture);
+			const { genTask, taskManager } = await loadFixture(deployFixture);
 
-			const task = {...tasks[0]};
 			const wallet = ethers.Wallet.createRandom();
-			task.owner = wallet.address;
+			const task = genTask(wallet.address, 1n, 1n);
 
-			expect((await taskManager.addTask(wallet, tasks[0]))!.message).to.be.equal("Insufficient balance");
+			expect((await taskManager.addTask(wallet, task))!.message).to.be.equal("Insufficient balance");
 		});
 		it("Should add task without error", async function () {
-			const { tasks, taskManager, otherAccounts } = await loadFixture(deployFixture);
-			expect(await taskManager.addTask(otherAccounts[0], tasks[0])).to.be.null;
+			const { genTask, taskManager, otherAccounts } = await loadFixture(deployFixture);
+			const task = genTask(otherAccounts[0].address, 1n, 1n);
+			expect(await taskManager.addTask(otherAccounts[0], task)).to.be.null;
 		});
 	});
 
 	describe("joinTask", function () {
 		it("Should join task", async function () {
-			const { taskMgr, tasks, taskManager, otherAccounts, nodes } = await loadFixture(deployFixture);
+			const { taskMgr, taskManager, otherAccounts, nodes, genTask } = await loadFixture(deployFixture);
 
-			const deposit = tasks[0].rewardPerNode * tasks[0].maxNodeNum;
-			await taskMgr.connect(otherAccounts[0]).add(tasks[0], { value: deposit });
-			const values = await taskMgr.getTask(tasks[0].id);
-			tasks[0].start = Number(values[3]);
+			const task = genTask(otherAccounts[0].address, 1n, 1n);
 
-			expect(await taskManager.joinTask(otherAccounts[9], tasks[0].id, nodes[0].pk)).to.be.null;
-			expect(await taskMgr.getNodeList(tasks[0].id)).to.deep.equal([nodes[0].pk]);
+			const deposit = task.rewardPerNode * task.maxNodeNum;
+			await taskMgr.connect(otherAccounts[0]).add(task, { value: deposit });
+			const values = await taskMgr.getTask(task.id);
+			task.start = values[3];
+
+			expect(await taskManager.joinTask(otherAccounts[9], task.id, nodes[0].pk)).to.be.null;
+			expect(await taskMgr.getNodeList(task.id)).to.deep.equal([nodes[0].pk]);
 		});
 	});
 
-	describe("getTasks", function () {
+	describe("getTask", function () {
 		it("Should get added tasks", async function () {
-			const { taskMgr, tasks, taskManager, otherAccounts } = await loadFixture(deployFixture);
+			const { taskManager, otherAccounts, genTask } = await loadFixture(deployFixture);
 
-			for (let i = 0; i < tasks.length; i++) {
-				const task = tasks[i];
-				const deposit = task.rewardPerNode * task.maxNodeNum;
-				await taskMgr.connect(otherAccounts[i]).add(tasks[i], { value: deposit });
-				const values = await taskMgr.getTask(task.id);
-				tasks[i].start = Number(values[3]);
+			const expected = genTask(otherAccounts[0].address, 1n, 1n);
+			await taskManager.addTask(otherAccounts[0], expected);
+			const actual = await taskManager.getTask(expected.id);
+			if(actual instanceof Error) {
+				assert.fail(actual.message);
 			}
-
-			const test = function (task: Task, tasks: Task[]): boolean {
-				for (const t of tasks) {
-					if (t.id == task.id) {
-						expect(t).to.deep.equal(task);
-						return true;
-					}
-				}
-				return false;
-			}
-			
-			const ret = await taskManager.getTasks();
-			if(ret instanceof Error) {
-				assert.fail(ret.message);
-			}
-
-			expect(ret.length).to.equal(tasks.length);
-			ret.forEach((task: Task) => {
-				expect(test(task, tasks)).to.be.true;
-			});
+			expected.start = actual.start;
+			expect(actual).to.deep.equal(expected);
 		});
 	});
 
 	describe("getTaskIds", function () {
 		it("hould get correct task ids", async function () {
-			const { taskMgr, tasks, taskManager, otherAccounts } = await loadFixture(deployFixture);
+			const { taskMgr, genTask, taskManager, otherAccounts } = await loadFixture(deployFixture);
+
+			const tasks: Task[] = [
+				genTask(otherAccounts[0].address, 1n, 1n),
+				genTask(otherAccounts[1].address, 1n, 2n),
+				genTask(otherAccounts[2].address, 2n, 2n),
+				genTask(otherAccounts[2].address, 3n, 3n),
+			];
 
 			expect(await taskManager.getTaskIds()).to.deep.equal([]);
 

@@ -34,44 +34,34 @@ export class TaskManager {
 		}
 	}
 
-	public async getTasks(): Promise<Task[] | Error> {
+	public async getTask(id: string): Promise<Task | Error> {
 		try {
-			const taskIds = await this.getTaskIds();
-			if (taskIds instanceof Error) {
-				return taskIds;
-			}
-
-			const tasks: Task[] = [];
-			for (const taskId of taskIds) {
-				const contract = new ethers.Contract(this._addr, this._abi, this._provider);
-				const values = await contract.getTask(taskId);
-				tasks.push(this._marshalTask(values));
-			}
-			return tasks;
+			const contract = new ethers.Contract(this._addr, this._abi, this._provider);
+			const values = await contract.getTask(id);
+			return this._marshalTask(values);
 		} catch (err: any) {
 			return new Error(err);
 		}
 	}
 
-	public async joinTask(signer: ethers.Signer, taskId: string, teePk: string): Promise<Error | null> {
+	public async joinTask(signer: ethers.Signer, id: string, teePk: string): Promise<Error | null> {
 		try {
 			const contract = new ethers.Contract(this._addr, this._abi, signer);
-			await contract.join(taskId, teePk);
+			await contract.join(id, teePk);
 			return null;
 		} catch (err: any) {
 			return new Error(err);
 		}
 	}
 
-	public async getNodeList(taskId: string): Promise<string[] | null | Error> {
+	public async getNodeList(id: string): Promise<string[] | null | Error> {
 		try {
 			const contract = new ethers.Contract(this._addr, this._abi, this._provider);
-			if (!await contract.taskExists(taskId)) {
+			if (!await contract.taskExists(id)) {
 				return null;
 			}
 
-			const nodeList: string[] = await contract.getNodeList(taskId);
-			return nodeList;
+			return await contract.getNodeList(id);
 		} catch (err: any) {
 			return new Error(err);
 		}
@@ -94,15 +84,45 @@ export class TaskManager {
 		}
 	}
 
+	public async reward(signer: ethers.Signer, id: string, pks: string[]): Promise<Error | null> {
+		try {
+			const contract = new ethers.Contract(this._addr, this._abi, signer);
+			await contract.reward(id, pks);
+			return null;
+		} catch (err: any) {
+			return new Error(err);
+		}
+	}
+
+	public async balance(addr: string): Promise<bigint | Error> {
+		try {
+			const contract = new ethers.Contract(this._addr, this._abi, this._provider);
+			return await contract.balance(addr);
+		} catch (err: any) {
+			return new Error(err);
+		}
+	}
+
+	public async withdraw(signer: ethers.Signer): Promise<Error | null> {
+		try {
+			const contract = new ethers.Contract(this._addr, this._abi, signer);
+			await contract.withdraw();
+			return null;
+		} catch (err: any) {
+			return new Error(err);
+		}
+	}
+
 	private _marshalTask(values: any[]): Task {
 		const task: Task = {} as Task;
-		task.id = values[0];
-		task.owner = values[1];
-		task.rewardPerNode = Number(values[2]);
-		task.start = Number(values[3]);
-		task.numDays = Number(values[4]);
-		task.maxNodeNum = Number(values[5]);
-		task.codeHash = values[6];
+		task.id = String(values[0]);
+		task.owner = String(values[1]);
+		task.rewardPerNode = BigInt(values[2]);
+		task.start = BigInt(values[3]);
+		task.numDays = BigInt(values[4]);
+		task.maxNodeNum = BigInt(values[5]);
+		task.codeHash = String(values[6]);
+
 		return task;
 	}
 }
