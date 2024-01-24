@@ -73,7 +73,7 @@ export function addCodeCmd(program: Command, cfg: Config, provider: Provider, ab
 		});
 }
 
-export async function getCodeInfo(params: Params, hash: string) {
+async function getCodeInfo(params: Params, hash: string) {
 	const codeManager = new CodeManager(params);
 	const code = await codeManager.getCode(hash);
 	if (code instanceof Error) {
@@ -86,7 +86,7 @@ export async function getCodeInfo(params: Params, hash: string) {
 	printCode(code);
 }
 
-export async function addOrUpdateCode(params: Params, backend: Signer, code: Code) {
+async function addOrUpdateCode(params: Params, backend: Signer, code: Code) {
 	const codeManager = new CodeManager(params);
 	const err = await codeManager.addOrUpdate(backend, code);
 	if (err instanceof Error) {
@@ -96,7 +96,7 @@ export async function addOrUpdateCode(params: Params, backend: Signer, code: Cod
 	printCode(code);
 }
 
-export async function removeCode(params: Params, backend: Signer, hash: string) {
+async function removeCode(params: Params, backend: Signer, hash: string) {
 	const codeManager = new CodeManager(params);
 	const err = await codeManager.remove(backend, hash);
 	if (err instanceof Error) {
