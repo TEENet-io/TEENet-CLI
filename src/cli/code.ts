@@ -22,7 +22,7 @@ export function addCodeCmd(program: Command, cfg: Config, provider: Provider, ab
 		.command('get <hash>')
 		.description('Get code info by hash')
 		.action((hash) => {
-			getCodeInfo({
+			get({
 				provider,
 				addr: cfg.deployed.CodeInfo,
 				abi: abi.CodeInfo
@@ -43,7 +43,7 @@ export function addCodeCmd(program: Command, cfg: Config, provider: Provider, ab
 			const wallet = walletOrErr as Wallet;
 			const file = join(__dirname, relative_file);
 			const code: Code = JSON.parse(readFileSync(file, 'utf-8'));
-			addOrUpdateCode({
+			addOrUpdate({
 				provider,
 				addr: cfg.deployed.CodeInfo,
 				abi: abi.CodeInfo
@@ -63,7 +63,7 @@ export function addCodeCmd(program: Command, cfg: Config, provider: Provider, ab
 
 			const wallet = walletOrErr as Wallet;
 
-			removeCode({
+			remove({
 				provider,
 				addr: cfg.deployed.CodeInfo,
 				abi: abi.CodeInfo
@@ -73,7 +73,7 @@ export function addCodeCmd(program: Command, cfg: Config, provider: Provider, ab
 		});
 }
 
-async function getCodeInfo(params: Params, hash: string) {
+async function get(params: Params, hash: string) {
 	const codeManager = new CodeManager(params);
 	const code = await codeManager.getCode(hash);
 	if (code instanceof Error) {
@@ -86,21 +86,21 @@ async function getCodeInfo(params: Params, hash: string) {
 	printCode(code);
 }
 
-async function addOrUpdateCode(params: Params, backend: Signer, code: Code) {
+async function addOrUpdate(params: Params, backend: Signer, code: Code) {
 	const codeManager = new CodeManager(params);
 	const err = await codeManager.addOrUpdate(backend, code);
 	if (err instanceof Error) {
 		throw new Error(err.message);
 	}
-	console.log('Added/updated code:');
+	console.log('Added/updated code info:');
 	printCode(code);
 }
 
-async function removeCode(params: Params, backend: Signer, hash: string) {
+async function remove(params: Params, backend: Signer, hash: string) {
 	const codeManager = new CodeManager(params);
 	const err = await codeManager.remove(backend, hash);
 	if (err instanceof Error) {
 		throw new Error(err.message);
 	}
-	console.log(`Removed code with hash=${hash}`);
+	console.log(`Removed code info with hash=${hash}`);
 }
