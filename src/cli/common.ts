@@ -1,4 +1,5 @@
 import { Code, Node, Task } from "../libs/types";
+import { Wallet } from 'ethers';
 
 export function printCode(code: Code) {
 	console.log(`Hash: ${code.hash}`);
@@ -21,4 +22,27 @@ export function printTask(task: Task) {
 	console.log(`Number of days: ${task.numDays}`);
 	console.log(`Maximum number of TEE nodes: ${task.maxNodeNum}`);
 	console.log(`Code hash: ${task.codeHash}`);
+}
+
+export function abort(msg: string | null | undefined) {
+	console.error(msg);
+	process.exit(1);
+}
+
+export function getWallet(addrOrIdx: string, wallets: Record<string, Wallet>): Wallet | Error {
+	let wallet: Wallet;
+	if (/^[0-9]*$/.test(addrOrIdx)) {
+		const idx = parseInt(addrOrIdx);
+		const ws = Object.values(wallets);
+		if (idx >= ws.length || idx < 0) {
+			return new Error('Invalid wallet index');
+		}
+		wallet = Object.values(wallets)[idx];
+	} else {
+		wallet = wallets[addrOrIdx];
+		if(!wallet) {
+			return new Error('Wallet not found');
+		}
+	}
+	return wallet;
 }

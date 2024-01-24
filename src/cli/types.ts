@@ -1,11 +1,12 @@
 export interface Config {
 	ver: string;
 	url: string;
-	contractAddress: {
-		task: string;
-		node: string;
-		code: string;
-	}
+	deployed: {
+		TaskMgr: string;
+		NodeInfo: string;
+		CodeInfo: string;
+	};
+	path: string;
 }
 
 export const files = {
@@ -13,5 +14,12 @@ export const files = {
 	task: './task.teenet.json',
 	node: './node.teenet.json',
 	code: './code.teenet.json',
-	abi: './abi.teenet.json'
+	abi: './abi.teenet.json',
+	pk: './pk.teenet.json'
+}
+
+export type ABIs = {
+	TaskMgr: any[];
+	NodeInfo: any[];
+	CodeInfo: any[];
 }
