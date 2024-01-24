@@ -80,7 +80,7 @@ async function get(params: Params, hash: string) {
 		throw new Error(code.message);
 	}
 	if (code === null) {
-		throw new Error("Code hash does not exist");
+		throw new Error(`Code hash=${hash} does not exist`);
 	}
 	console.log('Code info:');
 	printCode(code);
