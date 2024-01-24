@@ -16,7 +16,7 @@ import { join } from 'path';
 export function addCodeCmd(program: Command, cfg: Config, provider: Provider, abi: ABIs, wallets: Record<string, Wallet>) {
 	const codeCmd = program
 		.command('code')
-		.description('Code related commands');
+		.description('Commands that handle code info');
 
 	codeCmd
 		.command('get <hash>')
