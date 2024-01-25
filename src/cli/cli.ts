@@ -66,11 +66,10 @@ const wallets = loadWallets();
  * 							balance <addrOrIdx>					// get withdraw balance 
  * 							withdraw <addrOrIdx>				// withdraw balance
  * 
- * 			teenet 	node 	get <node_id>					// get node info
- * 							getList <task_id>				// list ids of nodes that have joined a task
- * 							add <addrOrIdx> <relative_file>	// add node info
- * 							remove <addrOrIdx> <pk>			// remove node info
- * 							register <file>					// send node info to backend for registration	
+ * 			teenet 	node 	get <node_id>							// get node info
+ * 							addOrUpdate <addrOrIdx> <relative_file>	// add node info
+ * 							remove <addrOrIdx> <pk>					// remove node info
+ * 							register <file>							// send node info to backend for registration	
  * 
  * 			teenet	code 	get <hash>								// get code info
  * 							addOrUpdate <addrOrIdx> <relative_file>	// add code info
