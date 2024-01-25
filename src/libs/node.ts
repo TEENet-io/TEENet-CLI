@@ -36,7 +36,8 @@ export class NodeManager {
 	public async addOrUpdate(backend: Signer, node: Node): Promise<Error | null> {
 		try {
 			const contract = new Contract(this._addr, this._abi, backend);
-			await contract.addOrUpdate(node);
+			const tx = await contract.addOrUpdate(node);
+			await tx.wait();
 			return null;
 		} catch (err: any) {
 			return new Error(err);
@@ -49,7 +50,8 @@ export class NodeManager {
 			if (!(await contract.nodeExists(pk))) {
 				return new Error("Node does not exist");
 			}
-			await contract.remove(pk);
+			const tx = await contract.remove(pk);
+			await tx.wait();
 			return null;
 		} catch (err: any) {
 			return new Error(err);

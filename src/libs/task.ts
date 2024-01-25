@@ -43,7 +43,8 @@ export class TaskManager {
 	public async joinTask(signer: Signer, id: string, pk: string): Promise<Error | null> {
 		try {
 			const contract = new Contract(this._addr, this._abi, signer);
-			await contract.join(id, pk);
+			const tx = await contract.join(id, pk);
+			await tx.wait();
 			return null;
 		} catch (err: any) {
 			return new Error(err);
@@ -73,7 +74,8 @@ export class TaskManager {
 			}
 
 			const contract = new Contract(this._addr, this._abi, signer);
-			await contract.add(task, { value: deposit});
+			const tx = await contract.add(task, { value: deposit});
+			await tx.wait();
 			return null;
 		} catch (err: any) {
 			return new Error(err);
@@ -83,7 +85,8 @@ export class TaskManager {
 	public async reward(signer: Signer, id: string, pks: string[]): Promise<Error | null> {
 		try {
 			const contract = new Contract(this._addr, this._abi, signer);
-			await contract.reward(id, pks);
+			const tx = await contract.reward(id, pks);
+			await tx.wait();
 			return null;
 		} catch (err: any) {
 			return new Error(err);
@@ -102,7 +105,8 @@ export class TaskManager {
 	public async withdraw(signer: Signer): Promise<Error | null> {
 		try {
 			const contract = new Contract(this._addr, this._abi, signer);
-			await contract.withdraw();
+			const tx = await contract.withdraw();
+			await tx.wait();
 			return null;
 		} catch (err: any) {
 			return new Error(err);

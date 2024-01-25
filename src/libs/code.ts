@@ -24,7 +24,7 @@ export class CodeManager {
 	public async getCode(hash: string): Promise<Code | null | Error> {
 		try {
 			const contract = new Contract(this._addr, this._abi, this._provider);
-			if(!(await contract.codeExists(hash))) {
+			if (!(await contract.codeExists(hash))) {
 				return null;
 			}
 			return this._marshalCode(await contract.getCode(hash));
@@ -36,7 +36,8 @@ export class CodeManager {
 	public async addOrUpdate(backend: Signer, code: Code): Promise<Error | null> {
 		try {
 			const contract = new Contract(this._addr, this._abi, backend);
-			await contract.addOrUpdate(code);
+			const tx = await contract.addOrUpdate(code);
+			await tx.wait();
 			return null;
 		} catch (err: any) {
 			return new Error(err);
@@ -49,7 +50,8 @@ export class CodeManager {
 			if (!(await contract.codeExists(hash))) {
 				return new Error("Code does not exist");
 			}
-			await contract.remove(hash);
+			const tx = await contract.remove(hash);
+			await tx.wait();
 			return null;
 		} catch (err: any) {
 			return new Error(err);
