@@ -1,5 +1,5 @@
 import { Code, Node, Task } from "../libs/types";
-import { Wallet } from 'ethers';
+import { Wallet, isHexString } from 'ethers';
 
 export function printCode(code: Code) {
 	console.log(`Hash: ${code.hash}`);
@@ -31,7 +31,7 @@ export function abort(msg: string | null | undefined) {
 
 export function getWallet(addrOrIdx: string, wallets: Record<string, Wallet>): Wallet | Error {
 	let wallet: Wallet;
-	if (/^[0-9]*$/.test(addrOrIdx)) {
+	if (isNumbericString(addrOrIdx)) {
 		const idx = parseInt(addrOrIdx);
 		const ws = Object.values(wallets);
 		if (idx >= ws.length || idx < 0) {
@@ -39,10 +39,21 @@ export function getWallet(addrOrIdx: string, wallets: Record<string, Wallet>): W
 		}
 		wallet = Object.values(wallets)[idx];
 	} else {
+		if(!(isHexString(addrOrIdx) && addrOrIdx.length === 42)) {
+			return new Error('Invalid wallet address');
+		}
 		wallet = wallets[addrOrIdx];
 		if(!wallet) {
 			return new Error('Wallet not found');
 		}
 	}
 	return wallet;
+}
+
+function isNumbericString(str: string): boolean {
+	return typeof str === 'string' && !Number.isNaN(str);
+}
+
+export function isBytes32(str: string): boolean {
+	return isHexString(str) && str.length === 66;
 }
