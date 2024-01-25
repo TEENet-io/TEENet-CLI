@@ -6,6 +6,8 @@ import { JsonRpcProvider, Wallet } from 'ethers';
 import { addWalletCmd } from './wallet';
 import { addCodeCmd } from './code';
 import { abort } from './common';
+import { addNodeCmd } from './node';
+import { isContract } from '../libs/common';
 
 // Load config file
 const loadConfig = () => {
@@ -27,6 +29,16 @@ const getProvider = (): JsonRpcProvider => {
 	return provider;
 }
 const provider = getProvider();
+
+// Check if contract addresses are valid
+const keys = Object.keys(cfg.deployed) as Array<keyof typeof cfg.deployed>;
+keys.forEach((key) => {
+	isContract(provider, cfg.deployed[key]).then((is) => {
+		if (!is) {
+			abort(`${key} contract address is not a contract: ${cfg.deployed[key]}`);
+		}
+	})
+});
 
 // Load contract ABIs
 const loadAbi = () => {
@@ -89,7 +101,8 @@ program.version(cfg.ver);
 try {
 	addWalletCmd(program, wallets);
 	addCodeCmd(program, cfg, provider, abi, wallets);
-} catch(err: any) {
+	addNodeCmd(program, cfg, provider, abi, wallets);
+} catch (err: any) {
 	abort(err.message || 'Unknown error');
 }
 
