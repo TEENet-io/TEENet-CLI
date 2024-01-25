@@ -2,10 +2,11 @@ import { Command } from "commander";
 import { Node, Params } from "../libs/types";
 import { NodeManager } from "../libs/node";
 import { Config, ABIs } from "./types";
-import { abort, getWallet, printNode, isBytes32 } from "./common";
+import { abort, getWallet, printNode } from "./common";
 import { Wallet, Provider } from "ethers";
 import { readFileSync } from 'fs';
 import { join } from 'path';
+import { isBytes32 } from "../libs/common";
 
 /**
  * Usage:	teenet 	node 	get <pk>								// get node info
@@ -48,7 +49,14 @@ export function addNodeCmd(
 
 			const wallet = walletOrErr as Wallet;
 			const file = join(__dirname, relative_file);
-			const node: Node = JSON.parse(readFileSync(file, 'utf-8'));
+			let node: Node;
+			try {
+				node = JSON.parse(readFileSync(file, 'utf-8'));
+			} catch (err: any) {
+				abort(err.message);
+				return;
+			}
+
 			add({
 				provider,
 				addr: cfg.deployed.NodeInfo,
@@ -79,7 +87,7 @@ export function addNodeCmd(
 }
 
 async function get(params: Params, pk: string) {
-	if(!isBytes32(pk)) {
+	if (!isBytes32(pk)) {
 		throw new Error(`Invalid pk: ${pk}`);
 	}
 
@@ -106,7 +114,7 @@ async function add(params: Params, wallet: Wallet, node: Node) {
 }
 
 async function remove(params: Params, wallet: Wallet, pk: string) {
-	if(!isBytes32(pk)) {
+	if (!isBytes32(pk)) {
 		throw new Error(`Invalid pk: ${pk}`);
 	}
 

@@ -2,10 +2,11 @@ import { Command } from 'commander';
 import { Provider, Signer, Wallet } from 'ethers';
 import { CodeManager } from '../libs/code';
 import { Code, Params } from '../libs/types';
-import { printCode, abort, getWallet, isBytes32 } from './common';
+import { printCode, abort, getWallet } from './common';
 import { Config, ABIs } from './types';
 import { readFileSync } from 'fs';
 import { join } from 'path';
+import { isBytes32 } from '../libs/common';
 
 /**
  * 	Usage:	teenet	code 	get <hash>								// get code info
@@ -36,13 +37,20 @@ export function addCodeCmd(program: Command, cfg: Config, provider: Provider, ab
 		.description('Add/update code info')
 		.action((addrOrIdx, relative_file) => {
 			const walletOrErr = getWallet(addrOrIdx, wallets);
-			if(walletOrErr instanceof Error) {
+			if (walletOrErr instanceof Error) {
 				abort(walletOrErr.message);
 			}
 
 			const wallet = walletOrErr as Wallet;
 			const file = join(__dirname, relative_file);
-			const code: Code = JSON.parse(readFileSync(file, 'utf-8'));
+			let code: Code;
+			try {
+				code = JSON.parse(readFileSync(file, 'utf-8'));
+			} catch (err: any) {
+				abort(err.message);
+				return;
+			}
+			
 			addOrUpdate({
 				provider,
 				addr: cfg.deployed.CodeInfo,
@@ -57,7 +65,7 @@ export function addCodeCmd(program: Command, cfg: Config, provider: Provider, ab
 		.description('Remove code info by hash')
 		.action((addrOrIdx, hash) => {
 			const walletOrErr = getWallet(addrOrIdx, wallets);
-			if(walletOrErr instanceof Error) {
+			if (walletOrErr instanceof Error) {
 				abort(walletOrErr.message);
 			}
 
@@ -74,7 +82,7 @@ export function addCodeCmd(program: Command, cfg: Config, provider: Provider, ab
 }
 
 async function get(params: Params, hash: string) {
-	if(!isBytes32(hash)) {
+	if (!isBytes32(hash)) {
 		throw new Error(`Invalid hash: ${hash}`);
 	}
 
@@ -101,7 +109,7 @@ async function addOrUpdate(params: Params, backend: Signer, code: Code) {
 }
 
 async function remove(params: Params, backend: Signer, hash: string) {
-	if(!isBytes32(hash)) {
+	if (!isBytes32(hash)) {
 		throw new Error(`Invalid hash: ${hash}`);
 	}
 
