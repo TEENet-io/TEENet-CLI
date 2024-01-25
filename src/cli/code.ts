@@ -2,7 +2,7 @@ import { Command } from 'commander';
 import { Provider, Signer, Wallet } from 'ethers';
 import { CodeManager } from '../libs/code';
 import { Code, Params } from '../libs/types';
-import { printCode, abort, getWallet } from './common';
+import { printCode, abort, getWallet, isBytes32 } from './common';
 import { Config, ABIs } from './types';
 import { readFileSync } from 'fs';
 import { join } from 'path';
@@ -74,6 +74,10 @@ export function addCodeCmd(program: Command, cfg: Config, provider: Provider, ab
 }
 
 async function get(params: Params, hash: string) {
+	if(!isBytes32(hash)) {
+		throw new Error(`Invalid hash: ${hash}`);
+	}
+
 	const codeManager = new CodeManager(params);
 	const code = await codeManager.getCode(hash);
 	if (code instanceof Error) {
@@ -97,10 +101,14 @@ async function addOrUpdate(params: Params, backend: Signer, code: Code) {
 }
 
 async function remove(params: Params, backend: Signer, hash: string) {
+	if(!isBytes32(hash)) {
+		throw new Error(`Invalid hash: ${hash}`);
+	}
+
 	const codeManager = new CodeManager(params);
 	const err = await codeManager.remove(backend, hash);
 	if (err instanceof Error) {
 		throw new Error(err.message);
 	}
-	console.log(`Removed code info with hash=${hash}`);
+	console.log(`Removed code info:\nhash=${hash}`);
 }
