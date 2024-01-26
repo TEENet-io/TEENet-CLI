@@ -12,6 +12,11 @@ describe('CLI Code', function () {
 			const expected = 'Code info does not exist';
 			expect(actual).to.include(expected);
 		});
+		it('should get correct code info', function () {
+			const actual = test(`code get ${codes[0].hash}`);
+			const expected = printCode(codes[0]);
+			expect(actual).to.include(expected);
+		});
 	});
 	describe('addOrUpdate', function () {
 		it('should fail with non-backend wallet', function () {
@@ -24,12 +29,8 @@ describe('CLI Code', function () {
 			const expected = printCode(codes[0]);
 			expect(actual).to.include(expected);
 		});
-		it('should get code info', function () {
-			const actual = test(`code get ${codes[0].hash}`);
-			const expected = printCode(codes[0]);
-			expect(actual).to.include(expected);
-		});
 		it('should update code info', function () {
+			test('code addOrUpdate 0 code0.json');
 			const code = JSON.parse(readFileSync(join(dataDir, 'code0.update.json'), 'utf-8'));
 			const actual = test('code addOrUpdate 0 code0.update.json');
 			const expected = printCode(code);
@@ -38,6 +39,7 @@ describe('CLI Code', function () {
 	});
 	describe('remove', function () {
 		it('should remove code info', function () {
+			test('code addOrUpdate 0 code0.json');
 			const actual = test(`code remove 0 ${codes[0].hash}`);
 			const expected = 'Removed code info';
 			expect(actual).to.include(expected);
