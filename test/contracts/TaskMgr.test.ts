@@ -2,6 +2,7 @@ import { loadFixture, time } from "@nomicfoundation/hardhat-toolbox/network-help
 import { ethers } from "hardhat";
 import { expect } from "chai";
 import { Task, Node, Code } from "../../src/libs/types";
+import { randBytes } from "../../src/libs/common";
 
 describe("TaskMgr", function () {
 	async function deployFixture() {
@@ -15,10 +16,6 @@ describe("TaskMgr", function () {
 
 		const TaskMgr = await ethers.getContractFactory("TaskMgr");
 		const taskMgr = await TaskMgr.deploy(second.address, await nodeInfo.getAddress(), await codeInfo.getAddress());
-
-		const randBytes = (numBytes: number) => {
-			return ethers.hexlify(ethers.randomBytes(numBytes));
-		}
 
 		const id1 = randBytes(32);
 		const id2 = randBytes(32);
@@ -52,7 +49,7 @@ describe("TaskMgr", function () {
 
 		const nodes: Node[] = [];
 
-		for (let i = 0; i < Number(task.maxNodeNum)+1; i++) {
+		for (let i = 0; i < Number(task.maxNodeNum) + 1; i++) {
 			const pk = ethers.hexlify(ethers.randomBytes(32));
 			const teeType = ethers.hexlify(ethers.randomBytes(4));
 			const teeVer = ethers.hexlify(ethers.randomBytes(4));
@@ -83,7 +80,7 @@ describe("TaskMgr", function () {
 
 			try {
 				const deposit = task.rewardPerNode * task.maxNodeNum - 1n;
-				await taskMgr.add(task, {value: deposit});
+				await taskMgr.add(task, { value: deposit });
 			} catch (err: any) {
 				expect(err.message).to.include("Insufficient deposit");
 			}
@@ -101,7 +98,7 @@ describe("TaskMgr", function () {
 			const { taskMgr, first, id1, task } = await loadFixture(deployFixture);
 
 			const deposit = task.rewardPerNode * task.maxNodeNum;
-			await taskMgr.add(task, {value: deposit});
+			await taskMgr.add(task, { value: deposit });
 
 			expect(await taskMgr.taskExists(id1)).to.equal(true);
 			expect((await taskMgr.getTask(id1)).owner).to.deep.equal(first.address);
@@ -110,12 +107,12 @@ describe("TaskMgr", function () {
 			const { taskMgr, task, randBytes } = await loadFixture(deployFixture);
 
 			const deposit = task.rewardPerNode * task.maxNodeNum;
-			
-			const t: Task = {...task};
+
+			const t: Task = { ...task };
 			t.codeHash = randBytes(32);
-			
+
 			try {
-				await taskMgr.add(task, {value: deposit});
+				await taskMgr.add(task, { value: deposit });
 			} catch (err: any) {
 				expect(err.message).to.include("Code hash not found");
 			}
@@ -123,8 +120,8 @@ describe("TaskMgr", function () {
 		it("Should log the correct event and add the correct record", async function () {
 			const { taskMgr, second, id1, id2, task, emptyTask } = await loadFixture(deployFixture);
 
-			const deposit = task.rewardPerNode * task.maxNodeNum + 1n; 
-			const ret = await taskMgr.connect(second).add(task, {value: deposit});
+			const deposit = task.rewardPerNode * task.maxNodeNum + 1n;
+			const ret = await taskMgr.connect(second).add(task, { value: deposit });
 
 			task.owner = second.address;
 			task.start = BigInt((await ethers.provider.getBlock('latest'))!.timestamp);
@@ -139,8 +136,8 @@ describe("TaskMgr", function () {
 		it("Should set the correct deposit value", async function () {
 			const { taskMgr, id1, task } = await loadFixture(deployFixture);
 
-			const deposit = task.rewardPerNode * task.maxNodeNum + 10n; 
-			await taskMgr.add(task, {value: deposit});
+			const deposit = task.rewardPerNode * task.maxNodeNum + 10n;
+			await taskMgr.add(task, { value: deposit });
 
 			expect(await taskMgr.deposit(id1)).to.equal(deposit);
 			expect(await taskMgr.getTaskIds()).to.deep.equal([id1]);
@@ -163,7 +160,7 @@ describe("TaskMgr", function () {
 			const { taskMgr, task } = await loadFixture(deployFixture);
 
 			// Add task
-			await taskMgr.add(task, {value: task.rewardPerNode * task.maxNodeNum});
+			await taskMgr.add(task, { value: task.rewardPerNode * task.maxNodeNum });
 
 			// Increase time
 			await time.increase(time.duration.days(Number(task.numDays)));
@@ -184,7 +181,7 @@ describe("TaskMgr", function () {
 		it("Should not allow non-exist node", async function () {
 			const { taskMgr, task } = await loadFixture(deployFixture);
 
-			await taskMgr.add(task, {value: task.rewardPerNode * task.maxNodeNum});
+			await taskMgr.add(task, { value: task.rewardPerNode * task.maxNodeNum });
 
 			const pk = ethers.hexlify(ethers.randomBytes(32));
 
@@ -197,7 +194,7 @@ describe("TaskMgr", function () {
 		it("Should not allow non-node-owner to join", async function () {
 			const { taskMgr, second, task, nodeInfo, nodes } = await loadFixture(deployFixture);
 
-			await taskMgr.add(task, {value: task.rewardPerNode * task.maxNodeNum});
+			await taskMgr.add(task, { value: task.rewardPerNode * task.maxNodeNum });
 			await nodeInfo.connect(second).addOrUpdate(nodes[0]);
 
 			try {
@@ -209,11 +206,11 @@ describe("TaskMgr", function () {
 		it("Should not join if task is full", async function () {
 			const { taskMgr, second, otherAccounts, task, nodeInfo, nodes } = await loadFixture(deployFixture);
 
-			await taskMgr.add(task, {value: task.rewardPerNode * task.maxNodeNum});
-			for(const node of nodes) {
+			await taskMgr.add(task, { value: task.rewardPerNode * task.maxNodeNum });
+			for (const node of nodes) {
 				await nodeInfo.connect(second).addOrUpdate(node);
 			}
-			for(let i = 0; i < task.maxNodeNum; i++) {
+			for (let i = 0; i < task.maxNodeNum; i++) {
 				await taskMgr.connect(otherAccounts[i]).join(task.id, nodes[i].pk);
 			}
 
@@ -228,14 +225,14 @@ describe("TaskMgr", function () {
 		it("Should log the correct event and add the correct record", async function () {
 			const { taskMgr, second, otherAccounts, task, nodeInfo, nodes } = await loadFixture(deployFixture);
 
-			await taskMgr.add(task, {value: task.rewardPerNode * task.maxNodeNum});
+			await taskMgr.add(task, { value: task.rewardPerNode * task.maxNodeNum });
 			await nodeInfo.connect(second).addOrUpdate(nodes[0]);
 			await nodeInfo.connect(second).addOrUpdate(nodes[1]);
 			await taskMgr.connect(otherAccounts[0]).join(task.id, nodes[0].pk);
-		
+
 			expect(await taskMgr.connect(otherAccounts[1]).join(task.id, nodes[1].pk))
 				.to.emit(taskMgr, "Join").withArgs(task.id, nodes[1].pk);
-			
+
 			expect((await taskMgr.getNodeList(task.id)).length).to.equal(2);
 			expect(await taskMgr.getNodeList(task.id)).to.deep.equal([nodes[0].pk, nodes[1].pk]);
 		});
@@ -244,7 +241,7 @@ describe("TaskMgr", function () {
 		it("Should not allow non-owner", async function () {
 			const { taskMgr, first, task } = await loadFixture(deployFixture);
 
-			await taskMgr.add(task, {value: task.rewardPerNode * task.maxNodeNum});
+			await taskMgr.add(task, { value: task.rewardPerNode * task.maxNodeNum });
 
 			try {
 				await taskMgr.reward(task.id, []);
@@ -267,9 +264,9 @@ describe("TaskMgr", function () {
 		it("Should not be called when task is not yet expired", async function () {
 			const { taskMgr, second, task } = await loadFixture(deployFixture);
 
-			await taskMgr.add(task, {value: task.rewardPerNode * task.maxNodeNum});
-			time.increase(time.duration.days(Number(task.numDays))-1);
-			
+			await taskMgr.add(task, { value: task.rewardPerNode * task.maxNodeNum });
+			time.increase(time.duration.days(Number(task.numDays)) - 1);
+
 			try {
 				await taskMgr.connect(second).reward(task.id, []);
 			} catch (err: any) {
@@ -279,7 +276,7 @@ describe("TaskMgr", function () {
 		it("Should not allow non-exist node", async function () {
 			const { taskMgr, second, task } = await loadFixture(deployFixture);
 
-			await taskMgr.add(task, {value: task.rewardPerNode * task.maxNodeNum});
+			await taskMgr.add(task, { value: task.rewardPerNode * task.maxNodeNum });
 			time.increase(time.duration.days(Number(task.numDays)));
 
 			const pk = ethers.hexlify(ethers.randomBytes(32));
@@ -294,8 +291,8 @@ describe("TaskMgr", function () {
 			const { taskMgr, second, otherAccounts, task, nodeInfo, nodes } = await loadFixture(deployFixture);
 			const pks: string[] = [];
 
-			await taskMgr.add(task, {value: task.rewardPerNode * task.maxNodeNum});
-			for(let i = 0; i < task.maxNodeNum; i++) {
+			await taskMgr.add(task, { value: task.rewardPerNode * task.maxNodeNum });
+			for (let i = 0; i < task.maxNodeNum; i++) {
 				await nodeInfo.connect(second).addOrUpdate(nodes[i]);
 				await taskMgr.connect(otherAccounts[i]).join(task.id, nodes[i].pk);
 				pks.push(nodes[i].pk);
@@ -305,15 +302,15 @@ describe("TaskMgr", function () {
 			expect(await taskMgr.connect(second).reward(task.id, pks))
 				.to.emit(taskMgr, "Reward").withArgs(task.id, pks);
 
-			for(let i = 0; i < task.maxNodeNum; i++) {
+			for (let i = 0; i < task.maxNodeNum; i++) {
 				expect(await taskMgr.balance(nodes[i].owner)).to.equal(task.rewardPerNode);
 			}
 		});
 		it("Should not allow repeated reward", async function () {
 			const { taskMgr, second, otherAccounts, task, nodeInfo, nodes } = await loadFixture(deployFixture);
-			
-			await taskMgr.add(task, {value: task.rewardPerNode * task.maxNodeNum});
-			for(let i = 0; i < task.maxNodeNum; i++) {
+
+			await taskMgr.add(task, { value: task.rewardPerNode * task.maxNodeNum });
+			for (let i = 0; i < task.maxNodeNum; i++) {
 				await nodeInfo.connect(second).addOrUpdate(nodes[i]);
 				await taskMgr.connect(otherAccounts[i]).join(task.id, nodes[i].pk);
 			}
@@ -329,9 +326,9 @@ describe("TaskMgr", function () {
 		});
 		it("Should allow separate rewards", async function () {
 			const { taskMgr, second, otherAccounts, task, nodeInfo, nodes } = await loadFixture(deployFixture);
-			
-			await taskMgr.add(task, {value: task.rewardPerNode * task.maxNodeNum});
-			for(let i = 0; i < task.maxNodeNum; i++) {
+
+			await taskMgr.add(task, { value: task.rewardPerNode * task.maxNodeNum });
+			for (let i = 0; i < task.maxNodeNum; i++) {
 				await nodeInfo.connect(second).addOrUpdate(nodes[i]);
 				await taskMgr.connect(otherAccounts[i]).join(task.id, nodes[i].pk);
 			}
@@ -350,7 +347,7 @@ describe("TaskMgr", function () {
 		it("Should not allow non-owner", async function () {
 			const { taskMgr, first, task } = await loadFixture(deployFixture);
 
-			await taskMgr.add(task, {value: task.rewardPerNode * task.maxNodeNum});
+			await taskMgr.add(task, { value: task.rewardPerNode * task.maxNodeNum });
 
 			try {
 				await taskMgr.withdrawDeposit(task.id);
@@ -373,8 +370,8 @@ describe("TaskMgr", function () {
 		it("Should not allow non-expired task", async function () {
 			const { taskMgr, second, task } = await loadFixture(deployFixture);
 
-			await taskMgr.add(task, {value: task.rewardPerNode * task.maxNodeNum});
-			time.increase(time.duration.days(Number(task.numDays))-1);
+			await taskMgr.add(task, { value: task.rewardPerNode * task.maxNodeNum });
+			time.increase(time.duration.days(Number(task.numDays)) - 1);
 
 			try {
 				await taskMgr.connect(second).withdrawDeposit(task.id);
@@ -386,7 +383,7 @@ describe("TaskMgr", function () {
 			const { taskMgr, second, task } = await loadFixture(deployFixture);
 
 			const value = task.rewardPerNode * task.maxNodeNum;
-			await taskMgr.add(task, {value: value});
+			await taskMgr.add(task, { value: value });
 			time.increase(time.duration.days(Number(task.numDays)));
 
 			expect(await taskMgr.connect(second).withdrawDeposit(task.id))
