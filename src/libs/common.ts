@@ -1,4 +1,4 @@
-import { Provider, isHexString, isError } from 'ethers';
+import { Provider, isHexString, isError, hexlify, randomBytes } from 'ethers';
 
 export async function isContract(provider: Provider, addr: string): Promise<boolean> {
 	const code = await provider.getCode(addr);
@@ -18,4 +18,8 @@ export function getRevertError(err: any): Error {
 		return new Error(err.shortMessage);
 	}
 	return new Error(err);
+}
+
+export const randBytes = (numBytes: number) => {
+	return hexlify(randomBytes(numBytes));
 }
