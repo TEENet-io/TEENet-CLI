@@ -6,7 +6,6 @@ export interface Config {
 		NodeInfo: string;
 		CodeInfo: string;
 	};
-	path: string;
 }
 
 export const files = {

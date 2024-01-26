@@ -33,19 +33,19 @@ export function addCodeCmd(program: Command, cfg: Config, provider: Provider, ab
 		});
 
 	codeCmd
-		.command('addOrUpdate <addrOrIdx> <relative_file>')
+		.command('addOrUpdate <addrOrIdx> <file>')
 		.description('Add/update code info')
-		.action((addrOrIdx, relative_file) => {
+		.action((addrOrIdx, file) => {
 			const walletOrErr = getWallet(addrOrIdx, wallets);
 			if (walletOrErr instanceof Error) {
 				abort(walletOrErr.message);
 			}
 
 			const wallet = walletOrErr as Wallet;
-			const file = join(__dirname, relative_file);
+			const _file = join(__dirname, 'data', file);
 			let code: Code;
 			try {
-				code = JSON.parse(readFileSync(file, 'utf-8'));
+				code = JSON.parse(readFileSync(_file, 'utf-8'));
 			} catch (err: any) {
 				abort(err.message);
 				return;
@@ -92,7 +92,7 @@ async function get(params: Params, hash: string) {
 		throw new Error(code.message);
 	}
 	if (code === null) {
-		throw new Error(`Code hash=${hash} does not exist`);
+		throw new Error(`Code info does not exist`);
 	}
 	console.log('Code info:');
 	printCode(code);
@@ -118,5 +118,5 @@ async function remove(params: Params, backend: Signer, hash: string) {
 	if (err instanceof Error) {
 		throw new Error(err.message);
 	}
-	console.log(`Removed code info:\nhash=${hash}`);
+	console.log(`Removed code info`);
 }

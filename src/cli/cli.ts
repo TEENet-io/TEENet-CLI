@@ -42,7 +42,7 @@ keys.forEach((key) => {
 
 // Load contract ABIs
 const loadAbi = () => {
-	const fAbi = join(__dirname, cfg.path, files.abi);
+	const fAbi = join(__dirname, files.abi);
 	try {
 		return JSON.parse(fs.readFileSync(fAbi, 'utf-8'));
 	} catch (err: any) {
@@ -53,7 +53,7 @@ const abi: ABIs = loadAbi();
 
 // Load wallets
 const loadWallets = () => {
-	const fPk = join(__dirname, cfg.path, files.pk);
+	const fPk = join(__dirname, 'wallet', files.pk);
 	let pks: string[] = [];
 	try {
 		pks = JSON.parse(fs.readFileSync(fPk, 'utf-8'));
@@ -79,12 +79,12 @@ const wallets = loadWallets();
  * 							withdraw <addrOrIdx>				// withdraw balance
  * 
  * 			teenet 	node 	get <node_id>							// get node info
- * 							addOrUpdate <addrOrIdx> <relative_file>	// add node info
+ * 							addOrUpdate <addrOrIdx> <file>			// add node info
  * 							remove <addrOrIdx> <pk>					// remove node info
  * 							register <file>							// send node info to backend for registration	
  * 
  * 			teenet	code 	get <hash>								// get code info
- * 							addOrUpdate <addrOrIdx> <relative_file>	// add code info
+ * 							addOrUpdate <addrOrIdx> <file>			// add code info
  * 							remove <addrOrIdx> <hash>				// remove code info
  * 							send <code>								// send code to backend for verification                   
  * 
@@ -105,19 +105,5 @@ try {
 } catch (err: any) {
 	abort(err.message || 'Unknown error');
 }
-
-// const nodeCmd = program
-// 	.command('node')
-// 	.description('TEE node related commands');
-
-// const taskCmd = program
-// 	.command('task')
-// 	.description('Task related commands');
-
-// taskCmd
-// 	.command('add')
-// 	.description('Add a task')
-// 	.argument('[file]', 'Json file that contains task data')
-// 	.action(async (file) => { });
 
 program.parse(process.argv);

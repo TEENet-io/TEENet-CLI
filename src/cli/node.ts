@@ -39,19 +39,20 @@ export function addNodeCmd(
 		});
 
 	nodeCmd
-		.command('addOrUpdate <addrOrIdx> <relative_file>')
+		.command('addOrUpdate <addrOrIdx> <file>')
 		.description('Add/update node info')
-		.action((addrOrIdx, relative_file) => {
+		.action((addrOrIdx, file) => {
 			const walletOrErr = getWallet(addrOrIdx, wallets);
 			if (walletOrErr instanceof Error) {
 				abort(walletOrErr.message);
 			}
 
 			const wallet = walletOrErr as Wallet;
-			const file = join(__dirname, relative_file);
+
+			const _file = join(__dirname, 'data', file);
 			let node: Node;
 			try {
-				node = JSON.parse(readFileSync(file, 'utf-8'));
+				node = JSON.parse(readFileSync(_file, 'utf-8'));
 			} catch (err: any) {
 				abort(err.message);
 				return;

@@ -1,10 +1,20 @@
 import { ethers } from "ethers";
-import { writeFileSync } from "fs";
+import { writeFileSync, mkdirSync, existsSync } from "fs";
 import { join } from "path";
 import { artifacts } from "hardhat";
 import { Config, files } from "../../src/cli/types";
 
 async function main() {
+	const exeDir = join(__dirname, '../../src/cli');
+	const dataDir = join(exeDir, 'data');
+	const walletDir = join(exeDir, 'wallet');
+	if (!existsSync(dataDir)) {
+		mkdirSync(dataDir);
+	}
+	if (!existsSync(walletDir)) {
+		mkdirSync(walletDir);
+	}
+	
 	const provider = new ethers.JsonRpcProvider("http://localhost:8545");
 	const backend = await provider.getSigner(0);
 
@@ -29,10 +39,9 @@ async function main() {
 			NodeInfo: nodeInfoAddr,
 			TaskMgr: taskMgrAddr,
 			CodeInfo: codeInfoAddr,
-		},
-		path: "../../test/cli/",
+		}
 	};
-	writeFileSync(join(__dirname, '../../src/cli/', files.config), JSON.stringify(config, null, 2));
+	writeFileSync(join(exeDir, files.config), JSON.stringify(config, null, 2));
 
 	const pks = [
 		'0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80',
@@ -46,7 +55,7 @@ async function main() {
 		'0xdbda1821b80551c9d65939329250298aa3472ba22feea921c0cf5d620ea67b97',
 		'0x2a871d0798f97d79848a013d4936a73bf4cc922c825d33c1cf7073dff6d409c6'
 	];
-	writeFileSync(join(__dirname, files.pk), JSON.stringify(pks, null, 2));
+	writeFileSync(join(walletDir, files.pk), JSON.stringify(pks, null, 2));
 
 	const contractNames = [ 'CodeInfo', 'NodeInfo', 'TaskMgr' ];
 	const abi: Record<string, any[]> = {};
@@ -54,7 +63,7 @@ async function main() {
 		const artifact = await artifacts.readArtifact(contractName);
 		abi[contractName] = artifact.abi;
 	};
-	writeFileSync(join(__dirname, files.abi), JSON.stringify(abi, null, 2));
+	writeFileSync(join(exeDir, files.abi), JSON.stringify(abi, null, 2));
 }
 
 main().catch((error) => {
