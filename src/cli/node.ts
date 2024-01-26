@@ -72,7 +72,7 @@ export function addNodeCmd(
 
 	nodeCmd
 		.command('remove <addrOrIdx> <pk>')
-		.description('Remove node info by pk')
+		.description('Remove node info by public key')
 		.action((addrOrIdx, pk) => {
 			const walletOrErr = getWallet(addrOrIdx, wallets);
 			if (walletOrErr instanceof Error) {
@@ -92,7 +92,7 @@ export function addNodeCmd(
 
 async function get(params: Params, pk: string) {
 	if (!isBytes32(pk)) {
-		throw new Error(`Invalid pk: ${pk}`);
+		throw new Error(`Invalid public key`);
 	}
 
 	const nodeManager = new NodeManager(params);
@@ -101,7 +101,7 @@ async function get(params: Params, pk: string) {
 		throw new Error(ret.message);
 	}
 	if (ret === null) {
-		throw new Error(`Node pk=${pk} does not exist`);
+		throw new Error(`Node info does not exist`);
 	}
 	logger.log('Node info:');
 	logger.log(printNode(ret));
@@ -119,7 +119,7 @@ async function add(params: Params, wallet: Wallet, node: Node) {
 
 async function remove(params: Params, wallet: Wallet, pk: string) {
 	if (!isBytes32(pk)) {
-		throw new Error(`Invalid pk: ${pk}`);
+		throw new Error('Invalid public key');
 	}
 
 	const nodeManager = new NodeManager(params);
@@ -127,5 +127,5 @@ async function remove(params: Params, wallet: Wallet, pk: string) {
 	if (ret instanceof Error) {
 		throw new Error(ret.message);
 	}
-	logger.log(`Removed code info:\npk=${pk}`);
+	logger.log(`Removed code info`);
 }
