@@ -43,7 +43,7 @@ describe("NodeManager", function () {
 		it("should return correct node info", async function () {
 			const { backend, nodeInfo, nodes, nodeManager } = await loadFixture(deployFixture);
 
-			await nodeInfo.connect(backend).addOrUpdate(nodes[0]);
+			await nodeInfo.connect(backend).add(nodes[0]);
 
 			expect(await nodeManager.getNodeInfo(nodes[0].pk)).to.deep.equal(nodes[0]);
 		});
@@ -55,14 +55,14 @@ describe("NodeManager", function () {
 		});
 		it("Should return true when node exists", async function () {
 			const { nodeManager, backend, nodeInfo, nodes } = await loadFixture(deployFixture);
-			await nodeInfo.connect(backend).addOrUpdate(nodes[0]);
+			await nodeInfo.connect(backend).add(nodes[0]);
 			expect(await nodeManager.remove(backend, nodes[0].pk)).to.be.null;
 		});
 	});
-	describe("addOrUpdate", function () {
+	describe("add", function () {
 		it("Should add correct node info", async function () {
 			const { nodeManager, backend, nodes } = await loadFixture(deployFixture);
-			expect(await nodeManager.addOrUpdate(backend, nodes[0])).to.be.null;
+			expect(await nodeManager.add(backend, nodes[0])).to.be.null;
 			expect(await nodeManager.getNodeInfo(nodes[0].pk)).to.deep.equal(nodes[0]);
 		});
 	});

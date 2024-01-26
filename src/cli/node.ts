@@ -13,7 +13,7 @@ const logger = LoggerFactory.getInstance();
 
 /**
  * Usage:	teenet 	node 	get <pk>								// get node info
- * 							addOrUpdate <addrOrIdx> <relative_file>	// add node info
+ * 							add <addrOrIdx> <relative_file>			// add node info
  * 							remove <addrOrIdx> <pk>					// remove node info
  * 							register <file>							// send node info to backend for registration
  */
@@ -42,7 +42,7 @@ export function addNodeCmd(
 		});
 
 	nodeCmd
-		.command('addOrUpdate <addrOrIdx> <file>')
+		.command('add <addrOrIdx> <file>')
 		.description('Add/update node info')
 		.action((addrOrIdx, file) => {
 			const walletOrErr = getWallet(addrOrIdx, wallets);
@@ -109,11 +109,11 @@ async function get(params: Params, pk: string) {
 
 async function add(params: Params, wallet: Wallet, node: Node) {
 	const nodeManager = new NodeManager(params);
-	const ret = await nodeManager.addOrUpdate(wallet, node);
+	const ret = await nodeManager.add(wallet, node);
 	if (ret instanceof Error) {
 		throw new Error(ret.message);
 	}
-	logger.log('Added/updated node info:');
+	logger.log('Added node info:');
 	logger.log(printNode(node));
 }
 

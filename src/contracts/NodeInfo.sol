@@ -11,7 +11,7 @@ contract NodeInfo is Ownable {
 
     constructor(address initOwner) Ownable(initOwner) {}
 
-    function addOrUpdate(Node memory node) external onlyOwner {
+    function add(Node memory node) external onlyOwner {
         require(node.pk != 0, "Zero pk");
         require(node.owner != address(0), "Zero owner");
 

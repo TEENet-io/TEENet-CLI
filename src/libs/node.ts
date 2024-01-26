@@ -34,10 +34,10 @@ export class NodeManager {
 		}
 	}
 
-	public async addOrUpdate(backend: Signer, node: Node): Promise<Error | null> {
+	public async add(backend: Signer, node: Node): Promise<Error | null> {
 		try {
 			const contract = new Contract(this._addr, this._abi, backend);
-			const tx = await contract.addOrUpdate(node);
+			const tx = await contract.add(node);
 			await tx.wait();
 			return null;
 		} catch (err: any) {
