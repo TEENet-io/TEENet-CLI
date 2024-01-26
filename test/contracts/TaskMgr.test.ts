@@ -195,7 +195,7 @@ describe("TaskMgr", function () {
 			const { taskMgr, second, task, nodeInfo, nodes } = await loadFixture(deployFixture);
 
 			await taskMgr.add(task, { value: task.rewardPerNode * task.maxNodeNum });
-			await nodeInfo.connect(second).addOrUpdate(nodes[0]);
+			await nodeInfo.connect(second).add(nodes[0]);
 
 			try {
 				await taskMgr.join(task.id, nodes[0].pk);
@@ -208,7 +208,7 @@ describe("TaskMgr", function () {
 
 			await taskMgr.add(task, { value: task.rewardPerNode * task.maxNodeNum });
 			for (const node of nodes) {
-				await nodeInfo.connect(second).addOrUpdate(node);
+				await nodeInfo.connect(second).add(node);
 			}
 			for (let i = 0; i < task.maxNodeNum; i++) {
 				await taskMgr.connect(otherAccounts[i]).join(task.id, nodes[i].pk);
@@ -226,8 +226,8 @@ describe("TaskMgr", function () {
 			const { taskMgr, second, otherAccounts, task, nodeInfo, nodes } = await loadFixture(deployFixture);
 
 			await taskMgr.add(task, { value: task.rewardPerNode * task.maxNodeNum });
-			await nodeInfo.connect(second).addOrUpdate(nodes[0]);
-			await nodeInfo.connect(second).addOrUpdate(nodes[1]);
+			await nodeInfo.connect(second).add(nodes[0]);
+			await nodeInfo.connect(second).add(nodes[1]);
 			await taskMgr.connect(otherAccounts[0]).join(task.id, nodes[0].pk);
 
 			expect(await taskMgr.connect(otherAccounts[1]).join(task.id, nodes[1].pk))
@@ -293,7 +293,7 @@ describe("TaskMgr", function () {
 
 			await taskMgr.add(task, { value: task.rewardPerNode * task.maxNodeNum });
 			for (let i = 0; i < task.maxNodeNum; i++) {
-				await nodeInfo.connect(second).addOrUpdate(nodes[i]);
+				await nodeInfo.connect(second).add(nodes[i]);
 				await taskMgr.connect(otherAccounts[i]).join(task.id, nodes[i].pk);
 				pks.push(nodes[i].pk);
 			}
@@ -311,7 +311,7 @@ describe("TaskMgr", function () {
 
 			await taskMgr.add(task, { value: task.rewardPerNode * task.maxNodeNum });
 			for (let i = 0; i < task.maxNodeNum; i++) {
-				await nodeInfo.connect(second).addOrUpdate(nodes[i]);
+				await nodeInfo.connect(second).add(nodes[i]);
 				await taskMgr.connect(otherAccounts[i]).join(task.id, nodes[i].pk);
 			}
 
@@ -329,7 +329,7 @@ describe("TaskMgr", function () {
 
 			await taskMgr.add(task, { value: task.rewardPerNode * task.maxNodeNum });
 			for (let i = 0; i < task.maxNodeNum; i++) {
-				await nodeInfo.connect(second).addOrUpdate(nodes[i]);
+				await nodeInfo.connect(second).add(nodes[i]);
 				await taskMgr.connect(otherAccounts[i]).join(task.id, nodes[i].pk);
 			}
 

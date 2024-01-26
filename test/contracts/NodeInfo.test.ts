@@ -62,7 +62,7 @@ describe("NodeInfo", function () {
 			try {
 				await nodeInfo.connect(second).add(n);
 			} catch (err: any) {
-				expect(err.message).to.include("Zero pk");
+				expect(err.message).to.include("Zero public key");
 			}
 		});
 		it("Should not allow zero owner address", async function () {

@@ -47,7 +47,7 @@ contract TaskMgr is Ownable {
 	 */
     function add(Task memory task) payable external {
 		require(task.id != 0, "Zero id");
-        require(tasks[task.id].id == 0, "Task already exists");
+        require(tasks[task.id].id == 0, "Duplicate task id");
 		require(task.maxNodeNum > 0, "Invalid maxNodeNum");
 		require(task.numDays > 0, "Invalid duration");
 		require(task.rewardPerNode > 0, "Invalid reward per node");

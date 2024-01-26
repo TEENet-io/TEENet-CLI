@@ -6,17 +6,18 @@ import {Node} from "./types.sol";
 contract NodeInfo is Ownable {
     mapping(bytes32 => Node) nodes;
 
-    event AddOrUpdate(bytes32 indexed pk, Node node);
+    event Add(bytes32 indexed pk, Node node);
     event Remove(bytes32 indexed pk);
 
     constructor(address initOwner) Ownable(initOwner) {}
 
     function add(Node memory node) external onlyOwner {
-        require(node.pk != 0, "Zero pk");
+        require(node.pk != 0, "Zero public key");
         require(node.owner != address(0), "Zero owner");
+		require(nodes[node.pk].pk == 0, "Duplicate public key");
 
         nodes[node.pk] = node;
-        emit AddOrUpdate(node.pk, node);
+        emit Add(node.pk, node);
     }
 
     function remove(bytes32 pk) external onlyOwner returns (bool) {
