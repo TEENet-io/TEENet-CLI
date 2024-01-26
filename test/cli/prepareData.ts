@@ -1,15 +1,12 @@
 import { Code, Node, Task } from '../../src/libs/types';
 import { writeFileSync, readFileSync } from 'fs';
-import { randomBytes, hexlify, Wallet } from 'ethers';
+import { Wallet } from 'ethers';
 import { files } from '../../src/cli/types';
 import { join } from 'path';
-
-const genBytes = (len: number) => {
-	return hexlify(randomBytes(len));
-}
+import { randBytes } from '../../src/libs/common';
 
 const genCode = (): Code => {
-	const hash = genBytes(32);
+	const hash = randBytes(32);
 	return {
 		hash: hash,
 		url: `https://${hash}.network`
@@ -18,17 +15,17 @@ const genCode = (): Code => {
 
 const genNode = (owner: string): Node => {
 	return {
-		pk: genBytes(32),
+		pk: randBytes(32),
 		owner: owner,
-		teeType: genBytes(16),
-		teeVer: genBytes(16),
-		attestation: genBytes(256)
+		teeType: randBytes(16),
+		teeVer: randBytes(16),
+		attestation: randBytes(256)
 	}
 }
 
 const genTask = (owner: string, numDays: number, codeHash: string): Task => {
 	return {
-		id: genBytes(32),
+		id: randBytes(32),
 		owner: owner,
 		rewardPerNode: BigInt(Math.ceil(Math.random() * 100)),
 		start: BigInt(0),
@@ -74,7 +71,7 @@ async function main() {
 	// Generate invalid node info
 	const zeroOwner = genNode(wallets[0].address);
 	writeFileSync(join(__dirname, dir, `node.zeroOwner.json`), JSON.stringify(zeroOwner, null, 2));
-	const zeroPK = genNode(genBytes(20));
+	const zeroPK = genNode(randBytes(20));
 	zeroPK.pk = '0x' + '0'.repeat(64);
 	writeFileSync(join(__dirname, dir, `node.zeroPK.json`), JSON.stringify(zeroPK, null, 2));
 }
