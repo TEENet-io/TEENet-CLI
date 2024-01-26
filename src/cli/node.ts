@@ -7,6 +7,9 @@ import { Wallet, Provider } from "ethers";
 import { readFileSync } from 'fs';
 import { join } from 'path';
 import { isBytes32 } from "../libs/common";
+import { LoggerFactory } from "./Logger";
+
+const logger = LoggerFactory.getInstance();
 
 /**
  * Usage:	teenet 	node 	get <pk>								// get node info
@@ -34,7 +37,7 @@ export function addNodeCmd(
 				addr: cfg.deployed.NodeInfo,
 				abi: abi.NodeInfo
 			}, pk).catch((err) => {
-				abort(err.message || 'Unknown error');
+				abort(logger, err.message || 'Unknown error');
 			});
 		});
 
@@ -44,7 +47,7 @@ export function addNodeCmd(
 		.action((addrOrIdx, file) => {
 			const walletOrErr = getWallet(addrOrIdx, wallets);
 			if (walletOrErr instanceof Error) {
-				abort(walletOrErr.message);
+				abort(logger, walletOrErr.message);
 			}
 
 			const wallet = walletOrErr as Wallet;
@@ -54,7 +57,7 @@ export function addNodeCmd(
 			try {
 				node = JSON.parse(readFileSync(_file, 'utf-8'));
 			} catch (err: any) {
-				abort(err.message);
+				abort(logger, err.message);
 				return;
 			}
 
@@ -63,7 +66,7 @@ export function addNodeCmd(
 				addr: cfg.deployed.NodeInfo,
 				abi: abi.NodeInfo
 			}, wallet, node).catch((err) => {
-				abort(err.message || 'Unknown error');
+				abort(logger, err.message || 'Unknown error');
 			});
 		});
 
@@ -73,7 +76,7 @@ export function addNodeCmd(
 		.action((addrOrIdx, pk) => {
 			const walletOrErr = getWallet(addrOrIdx, wallets);
 			if (walletOrErr instanceof Error) {
-				abort(walletOrErr.message);
+				abort(logger, walletOrErr.message);
 			}
 
 			const wallet = walletOrErr as Wallet;
@@ -82,7 +85,7 @@ export function addNodeCmd(
 				addr: cfg.deployed.NodeInfo,
 				abi: abi.NodeInfo
 			}, wallet, pk).catch((err) => {
-				abort(err.message || 'Unknown error');
+				abort(logger, err.message || 'Unknown error');
 			});
 		});
 }
@@ -100,8 +103,8 @@ async function get(params: Params, pk: string) {
 	if (ret === null) {
 		throw new Error(`Node pk=${pk} does not exist`);
 	}
-	console.log('Node info:');
-	printNode(ret);
+	logger.log('Node info:');
+	logger.log(printNode(ret));
 }
 
 async function add(params: Params, wallet: Wallet, node: Node) {
@@ -110,8 +113,8 @@ async function add(params: Params, wallet: Wallet, node: Node) {
 	if (ret instanceof Error) {
 		throw new Error(ret.message);
 	}
-	console.log('Added/updated node info:');
-	printNode(node);
+	logger.log('Added/updated node info:');
+	logger.log(printNode(node));
 }
 
 async function remove(params: Params, wallet: Wallet, pk: string) {
@@ -124,5 +127,5 @@ async function remove(params: Params, wallet: Wallet, pk: string) {
 	if (ret instanceof Error) {
 		throw new Error(ret.message);
 	}
-	console.log(`Removed code info:\npk=${pk}`);
+	logger.log(`Removed code info:\npk=${pk}`);
 }

@@ -7,6 +7,9 @@ import { Config, ABIs } from './types';
 import { readFileSync } from 'fs';
 import { join } from 'path';
 import { isBytes32 } from '../libs/common';
+import { LoggerFactory } from './Logger';
+
+const logger = LoggerFactory.getInstance();
 
 /**
  * 	Usage:	teenet	code 	get <hash>								// get code info
@@ -28,7 +31,7 @@ export function addCodeCmd(program: Command, cfg: Config, provider: Provider, ab
 				addr: cfg.deployed.CodeInfo,
 				abi: abi.CodeInfo
 			}, hash).catch((err) => {
-				abort(err.message || 'Unknown error');
+				abort(logger, err.message || 'Unknown error');
 			});
 		});
 
@@ -38,7 +41,7 @@ export function addCodeCmd(program: Command, cfg: Config, provider: Provider, ab
 		.action((addrOrIdx, file) => {
 			const walletOrErr = getWallet(addrOrIdx, wallets);
 			if (walletOrErr instanceof Error) {
-				abort(walletOrErr.message);
+				abort(logger, walletOrErr.message);
 			}
 
 			const wallet = walletOrErr as Wallet;
@@ -47,7 +50,7 @@ export function addCodeCmd(program: Command, cfg: Config, provider: Provider, ab
 			try {
 				code = JSON.parse(readFileSync(_file, 'utf-8'));
 			} catch (err: any) {
-				abort(err.message);
+				abort(logger, err.message);
 				return;
 			}
 			
@@ -56,7 +59,7 @@ export function addCodeCmd(program: Command, cfg: Config, provider: Provider, ab
 				addr: cfg.deployed.CodeInfo,
 				abi: abi.CodeInfo
 			}, wallet, code).catch((err) => {
-				abort(err.message || 'Unknown error');
+				abort(logger, err.message || 'Unknown error');
 			});
 		});
 
@@ -66,7 +69,7 @@ export function addCodeCmd(program: Command, cfg: Config, provider: Provider, ab
 		.action((addrOrIdx, hash) => {
 			const walletOrErr = getWallet(addrOrIdx, wallets);
 			if (walletOrErr instanceof Error) {
-				abort(walletOrErr.message);
+				abort(logger, walletOrErr.message);
 			}
 
 			const wallet = walletOrErr as Wallet;
@@ -76,7 +79,7 @@ export function addCodeCmd(program: Command, cfg: Config, provider: Provider, ab
 				addr: cfg.deployed.CodeInfo,
 				abi: abi.CodeInfo
 			}, wallet, hash).catch((err) => {
-				abort(err.message || 'Unknown error');
+				abort(logger, err.message || 'Unknown error');
 			});;
 		});
 }
@@ -94,8 +97,8 @@ async function get(params: Params, hash: string) {
 	if (code === null) {
 		throw new Error(`Code info does not exist`);
 	}
-	console.log('Code info:');
-	printCode(code);
+	logger.log('Code info:');
+	logger.log(printCode(code));
 }
 
 async function addOrUpdate(params: Params, backend: Signer, code: Code) {
@@ -104,8 +107,8 @@ async function addOrUpdate(params: Params, backend: Signer, code: Code) {
 	if (err instanceof Error) {
 		throw new Error(err.message);
 	}
-	console.log('Added/updated code info:');
-	printCode(code);
+	logger.log('Added/updated code info:');
+	logger.log(printCode(code));
 }
 
 async function remove(params: Params, backend: Signer, hash: string) {
@@ -118,5 +121,5 @@ async function remove(params: Params, backend: Signer, hash: string) {
 	if (err instanceof Error) {
 		throw new Error(err.message);
 	}
-	console.log(`Removed code info`);
+	logger.log(`Removed code info`);
 }

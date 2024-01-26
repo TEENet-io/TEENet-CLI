@@ -1,32 +1,48 @@
 import { Code, Node, Task } from "../libs/types";
 import { Wallet, isAddress } from 'ethers';
 import { isNumbericString } from "../libs/common";
+import { Logger } from "./Logger";
 
-export function printCode(code: Code) {
-	console.log(`Hash: ${code.hash}`);
-	console.log(`Url: ${code.url}`);
+export function printCode(code: Code): string {
+	let output = "";
+	output += `Hash: ${code.hash}\n`;
+	output += `Url: ${code.url}`;
+	return output;
 }
 
 export function printNode(node: Node) {
-	console.log(`Public key: ${node.pk}`);
-	console.log(`Owned by: ${node.owner}`);
-	console.log(`TEE type: ${node.teeType}`);
-	console.log(`TEE version: ${node.teeVer}`);
-	console.log(`Attestation: ${node.attestation}`);
+	let output = "";
+	output += `Public key: ${node.pk}\n`;
+	output += `Owned by: ${node.owner}\n`;
+	output += `TEE type: ${node.teeType}\n`;
+	output += `TEE version: ${node.teeVer}\n`;
+	output += `Attestation: ${node.attestation}`;
+	return output;
 }
 
 export function printTask(task: Task) {
-	console.log(`ID: ${task.id}`);
-	console.log(`Owned by: ${task.owner}`);
-	console.log(`Reward per node: ${task.rewardPerNode}`);
-	console.log(`Start time: ${task.start}`);
-	console.log(`Number of days: ${task.numDays}`);
-	console.log(`Maximum number of TEE nodes: ${task.maxNodeNum}`);
-	console.log(`Code hash: ${task.codeHash}`);
+	let output = "";
+	output += `ID: ${task.id}\n`;
+	output += `Owned by: ${task.owner}\n`;
+	output += `Reward per node: ${task.rewardPerNode}\n`;
+	output += `Start time: ${task.start}\n`;
+	output += `Number of days: ${task.numDays}\n`;
+	output += `Maximum number of TEE nodes: ${task.maxNodeNum}\n`;
+	output += `Code hash: ${task.codeHash}`;
+	return output;
 }
 
-export function abort(msg: string | null | undefined) {
-	console.error(msg);
+export function printAddresses(addrs: string[]): string {
+	let output = "";
+	for (let idx: number = 0; idx < addrs.length; idx++) {
+		output += `[${idx}]:\t${addrs[idx]}\n`;
+	}
+	output = output.trim();
+	return output;
+}
+
+export function abort(logger: Logger, msg: string) {
+	logger.log(msg);
 	process.exit(1);
 }
 

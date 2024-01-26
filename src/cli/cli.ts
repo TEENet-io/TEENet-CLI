@@ -9,13 +9,20 @@ import { abort } from './common';
 import { addNodeCmd } from './node';
 import { isContract } from '../libs/common';
 
+import { LoggerFactory } from './Logger';
+
+const logger = LoggerFactory.getInstance();
+logger.on('log', (msg) => {
+	console.log(msg);
+});
+
 // Load config file
 const loadConfig = () => {
 	const fConfig = join(__dirname, files.config);
 	try {
 		return JSON.parse(fs.readFileSync(fConfig, 'utf-8'));
 	} catch (err: any) {
-		abort(err.message);
+		abort(logger, err.message);
 	}
 }
 const cfg: Config = loadConfig();
@@ -24,7 +31,7 @@ const cfg: Config = loadConfig();
 const getProvider = (): JsonRpcProvider => {
 	const provider = new JsonRpcProvider(cfg.url);
 	provider.getBlockNumber().catch((err) => {
-		abort('Invalid rpc url');
+		abort(logger, 'Invalid rpc url');
 	});
 	return provider;
 }
@@ -35,7 +42,7 @@ const keys = Object.keys(cfg.deployed) as Array<keyof typeof cfg.deployed>;
 keys.forEach((key) => {
 	isContract(provider, cfg.deployed[key]).then((is) => {
 		if (!is) {
-			abort(`${key} contract address is not a contract: ${cfg.deployed[key]}`);
+			abort(logger, `${key} contract address is not a contract: ${cfg.deployed[key]}`);
 		}
 	})
 });
@@ -46,7 +53,7 @@ const loadAbi = () => {
 	try {
 		return JSON.parse(fs.readFileSync(fAbi, 'utf-8'));
 	} catch (err: any) {
-		abort(err.message);
+		abort(logger, err.message);
 	}
 }
 const abi: ABIs = loadAbi();
@@ -58,7 +65,7 @@ const loadWallets = () => {
 	try {
 		pks = JSON.parse(fs.readFileSync(fPk, 'utf-8'));
 	} catch (err: any) {
-		abort(err.message);
+		abort(logger, err.message);
 	}
 	const wallets: Record<string, Wallet> = {};
 	for (const pk of pks) {
@@ -103,7 +110,7 @@ try {
 	addCodeCmd(program, cfg, provider, abi, wallets);
 	addNodeCmd(program, cfg, provider, abi, wallets);
 } catch (err: any) {
-	abort(err.message || 'Unknown error');
+	abort(logger, err.message || 'Unknown error');
 }
 
 program.parse(process.argv);

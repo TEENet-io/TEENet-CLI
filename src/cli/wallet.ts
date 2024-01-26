@@ -1,5 +1,9 @@
 import { Command } from 'commander';
 import { Wallet } from 'ethers';
+import { printAddresses } from './common';
+import { LoggerFactory } from './Logger';
+
+const logger = LoggerFactory.getInstance();
 
 export function addWalletCmd(program: Command, wallets: Record<string, Wallet>) {
 	const walletCmd = program
@@ -11,8 +15,6 @@ export function addWalletCmd(program: Command, wallets: Record<string, Wallet>) 
 		.description('List all available wallets')
 		.action(() => {
 			const addrs = Object.keys(wallets);
-			for (let idx: number = 0; idx < addrs.length; idx++) {
-				console.log(`[${idx}]:\t${addrs[idx]}`);
-			}
+			logger.log(printAddresses(addrs));
 		});
 }
