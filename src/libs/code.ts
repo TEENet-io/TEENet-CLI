@@ -1,5 +1,6 @@
 import { Provider, Signer, Contract } from "ethers";
 import { Code, Params } from "./types";
+import { getRevertError } from "./common";
 
 export class CodeManager {
 	private readonly _provider: Provider;
@@ -17,7 +18,7 @@ export class CodeManager {
 			const contract = new Contract(this._addr, this._abi, this._provider);
 			return contract.codeExists(hash);
 		} catch (err: any) {
-			return new Error(err);
+			return getRevertError(err);
 		}
 	}
 
@@ -29,7 +30,7 @@ export class CodeManager {
 			}
 			return this._marshalCode(await contract.getCode(hash));
 		} catch (err: any) {
-			return new Error(err);
+			return getRevertError(err);
 		}
 	}
 
@@ -40,7 +41,7 @@ export class CodeManager {
 			await tx.wait();
 			return null;
 		} catch (err: any) {
-			return new Error(err);
+			return getRevertError(err);
 		}
 	}
 
@@ -54,7 +55,7 @@ export class CodeManager {
 			await tx.wait();
 			return null;
 		} catch (err: any) {
-			return new Error(err);
+			return getRevertError(err);
 		}
 	}
 
