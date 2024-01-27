@@ -48,9 +48,6 @@ export class NodeManager {
 	public async remove(backend: Signer, pk: string): Promise<Error | null> {
 		try {
 			const contract = new Contract(this._addr, this._abi, backend);
-			if (!(await contract.nodeExists(pk))) {
-				return new Error("Node does not exist");
-			}
 			const tx = await contract.remove(pk);
 			await tx.wait();
 			return null;

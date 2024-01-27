@@ -48,9 +48,6 @@ export class CodeManager {
 	public async remove(backend: Signer, hash: string): Promise<Error | null> {
 		try {
 			const contract = new Contract(this._addr, this._abi, backend);
-			if (!(await contract.codeExists(hash))) {
-				return new Error("Code does not exist");
-			}
 			const tx = await contract.remove(hash);
 			await tx.wait();
 			return null;
