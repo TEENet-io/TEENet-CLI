@@ -46,22 +46,28 @@ export function abort(logger: Logger, msg: string) {
 	process.exit(1);
 }
 
+export class WalletErr {
+	public static readonly InvalidAddress = (addr: string) => new Error(`Invalid address\naddr=${addr}`);
+	public static readonly InvalidIndex = (idx: number) => new Error(`Invalid index\nidx=${idx}`);
+	public static readonly NotFound = (addr: string) => new Error(`Wallet not found\naddr=${addr}`);
+}
+
 export function getWallet(addrOrIdx: string, wallets: Record<string, Wallet>): Wallet | Error {
 	let wallet: Wallet;
 	if (isNumbericString(addrOrIdx)) {
 		const idx = parseInt(addrOrIdx);
 		const ws = Object.values(wallets);
 		if (idx >= ws.length || idx < 0) {
-			return new Error('Invalid wallet index');
+			return WalletErr.InvalidIndex(idx);
 		}
 		wallet = Object.values(wallets)[idx];
 	} else {
 		if (!(isAddress(addrOrIdx))) {
-			return new Error('Invalid wallet address');
+			return WalletErr.InvalidAddress(addrOrIdx);
 		}
 		wallet = wallets[addrOrIdx];
 		if (!wallet) {
-			return new Error('Wallet not found');
+			return WalletErr.NotFound(addrOrIdx);
 		}
 	}
 	return wallet;

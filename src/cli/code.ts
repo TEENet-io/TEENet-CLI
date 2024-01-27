@@ -11,6 +11,11 @@ import { LoggerFactory } from './Logger';
 
 const logger = LoggerFactory.getInstance();
 
+export class CodeInfoErr {
+	public static readonly NotFound = (hash: string) => new Error(`Code info not found\nhash=${hash}`);
+	public static readonly InvalidHash = (hash: string) => new Error(`Invalid hash\nhash=${hash}`);
+}
+
 /**
  * 	Usage:	teenet	code 	get <hash>								// get code info
  * 							addOrUpdate <addrOrIdx> <relative_file>	// add code info
@@ -86,18 +91,21 @@ export function addCodeCmd(program: Command, cfg: Config, provider: Provider, ab
 
 async function get(params: Params, hash: string) {
 	if (!isBytes32(hash)) {
-		throw new Error(`Invalid hash: ${hash}`);
+		throw CodeInfoErr.InvalidHash(hash);
 	}
 
 	const codeManager = new CodeManager(params);
+	if(!(await codeManager.codeExists(hash))) {
+		throw CodeInfoErr.NotFound(hash);
+	}
+
 	const code = await codeManager.getCode(hash);
 	if (code instanceof Error) {
 		throw new Error(code.message);
 	}
 	if (code === null) {
-		throw new Error(`Code info does not exist`);
+		throw CodeInfoErr.NotFound(hash);
 	}
-	logger.log('Code info:');
 	logger.log(printCode(code));
 }
 
@@ -107,19 +115,23 @@ async function addOrUpdate(params: Params, backend: Signer, code: Code) {
 	if (err instanceof Error) {
 		throw new Error(err.message);
 	}
-	logger.log('Added/updated code info:');
+	logger.log('Added/updated code info');
 	logger.log(printCode(code));
 }
 
 async function remove(params: Params, backend: Signer, hash: string) {
 	if (!isBytes32(hash)) {
-		throw new Error(`Invalid hash: ${hash}`);
+		throw CodeInfoErr.InvalidHash(hash);
 	}
 
 	const codeManager = new CodeManager(params);
+	if(!(await codeManager.codeExists(hash))) {
+		throw CodeInfoErr.NotFound(hash);
+	}
+
 	const err = await codeManager.remove(backend, hash);
 	if (err instanceof Error) {
 		throw new Error(err.message);
 	}
-	logger.log(`Removed code info`);
+	logger.log(`Removed code info\nhash=${hash}`);
 }

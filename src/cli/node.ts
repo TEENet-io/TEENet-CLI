@@ -11,6 +11,11 @@ import { LoggerFactory } from "./Logger";
 
 const logger = LoggerFactory.getInstance();
 
+export class NodeInfoErr {
+	public static readonly NotFound = (pk: string) => new Error(`Node info not found\npk=${pk}`);
+	public static readonly InvalidPk = (pk: string) => new Error(`Invalid public key\npk=${pk}`);	
+}
+
 /**
  * Usage:	teenet 	node 	get <pk>								// get node info
  * 							add <addrOrIdx> <relative_file>			// add node info
@@ -92,18 +97,21 @@ export function addNodeCmd(
 
 async function get(params: Params, pk: string) {
 	if (!isBytes32(pk)) {
-		throw new Error(`Invalid public key`);
+		throw NodeInfoErr.InvalidPk(pk);
 	}
 
 	const nodeManager = new NodeManager(params);
+	if(!(await nodeManager.nodeExists(pk))) {
+		throw NodeInfoErr.NotFound(pk);
+	}
+
 	const ret = await nodeManager.getNodeInfo(pk);
 	if (ret instanceof Error) {
 		throw new Error(ret.message);
 	}
 	if (ret === null) {
-		throw new Error(`Node info does not exist`);
+		throw NodeInfoErr.NotFound(pk);
 	}
-	logger.log('Node info:');
 	logger.log(printNode(ret));
 }
 
@@ -113,19 +121,23 @@ async function add(params: Params, wallet: Wallet, node: Node) {
 	if (ret instanceof Error) {
 		throw new Error(ret.message);
 	}
-	logger.log('Added node info:');
+	logger.log('Added node info');
 	logger.log(printNode(node));
 }
 
 async function remove(params: Params, wallet: Wallet, pk: string) {
 	if (!isBytes32(pk)) {
-		throw new Error('Invalid public key');
+		throw NodeInfoErr.InvalidPk(pk);	
 	}
 
 	const nodeManager = new NodeManager(params);
+	if(!(await nodeManager.nodeExists(pk))) {
+		throw NodeInfoErr.NotFound(pk);
+	}
+
 	const ret = await nodeManager.remove(wallet, pk);
 	if (ret instanceof Error) {
 		throw new Error(ret.message);
 	}
-	logger.log(`Removed code info`);
+	logger.log(`Removed node info\npk=${pk}`);
 }
