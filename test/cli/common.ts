@@ -46,3 +46,11 @@ const loadCodes = () => {
 	return codes;
 }
 export const codes = loadCodes();
+
+export const loadNode = (file: string) => {
+	try {
+		return JSON.parse(readFileSync(join(dataDir, file), 'utf-8'));
+	} catch (err: any) {
+		assert.fail(err.message);
+	}
+}
