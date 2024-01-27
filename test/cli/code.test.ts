@@ -4,18 +4,28 @@ import { printCode } from '../../src/cli/common';
 import { readFileSync } from 'fs';
 import { join } from 'path';
 import { randBytes } from '../../src/libs/common';
+import { CodeInfoErr } from '../../src/cli/code'
 
 describe('CLI Code', function () {
 	describe('get', function () {
+		it('should fail with invalid hash', function () {
+			const hash = randBytes(30);
+			const actual = test(`code get ${hash}`);
+			const expected = CodeInfoErr.InvalidHash(hash).message;
+			expect(actual).to.include(expected);
+		});
 		it('should not find code info', function () {
-			const actual = test(`code get ${randBytes(32)}`);
-			const expected = 'Code info does not exist';
+			const hash = randBytes(32);
+			const actual = test(`code get ${hash}`);
+			const expected = CodeInfoErr.NotFound(hash).message;
 			expect(actual).to.include(expected);
 		});
 		it('should get correct code info', function () {
+			test('code addOrUpdate 0 code0.json');
 			const actual = test(`code get ${codes[0].hash}`);
 			const expected = printCode(codes[0]);
 			expect(actual).to.include(expected);
+			test('code remove 0 ' + codes[0].hash);
 		});
 	});
 	describe('addOrUpdate', function () {
@@ -28,6 +38,7 @@ describe('CLI Code', function () {
 			const actual = test('code addOrUpdate 0 code0.json');
 			const expected = printCode(codes[0]);
 			expect(actual).to.include(expected);
+			test('code remove 0 ' + codes[0].hash);
 		});
 		it('should update code info', function () {
 			test('code addOrUpdate 0 code0.json');
@@ -35,13 +46,26 @@ describe('CLI Code', function () {
 			const actual = test('code addOrUpdate 0 code0.update.json');
 			const expected = printCode(code);
 			expect(actual).to.include(expected);
+			test('code remove 0 ' + code.hash);
 		});
 	});
 	describe('remove', function () {
+		it('should fail with invalid hash', function () {
+			const hash = randBytes(30);
+			const actual = test(`code remove 0 ${hash}`);
+			const expected = CodeInfoErr.InvalidHash(hash).message;
+			expect(actual).to.include(expected);
+		});
+		it('should not find code info', function () {
+			const hash = randBytes(32);
+			const actual = test(`code remove 0 ${hash}`);
+			const expected = CodeInfoErr.NotFound(hash).message;
+			expect(actual).to.include(expected);
+		});
 		it('should remove code info', function () {
 			test('code addOrUpdate 0 code0.json');
 			const actual = test(`code remove 0 ${codes[0].hash}`);
-			const expected = 'Removed code info';
+			const expected = codes[0].hash;
 			expect(actual).to.include(expected);
 		});
 	});
