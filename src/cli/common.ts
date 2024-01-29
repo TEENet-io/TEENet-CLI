@@ -1,6 +1,6 @@
 import { Code, Node, Task } from "../libs/types";
 import { Wallet, isAddress } from 'ethers';
-import { isNumbericString } from "../libs/common";
+import { isBytes32, isNumbericString } from "../libs/common";
 
 export function printCode(code: Code): string {
 	let output = "";
@@ -31,8 +31,18 @@ export function printTask(task: Task) {
 	return output;
 }
 
+function getTaskExpireDate(task: Task): string {
+	const expireDate = new Date(Number(task.start) * 1000 + Number(task.numDays) * 24 * 60 * 60 * 1000);
+	return expireDate.toDateString();
+}
+
 export function printTaskList(tasks: Record<string, Task>) {
 	let output = "";
+	for (const id in tasks) {
+		const expireDate = new Date(getTaskExpireDate(tasks[id]));
+		output += `${id}\t${tasks[id].rewardPerNode}\t${expireDate}\n`;
+	}
+	output = output.trim();
 	return output;
 }
 
@@ -70,4 +80,16 @@ export function getWallet(addrOrIdx: string, wallets: Record<string, Wallet>): W
 		}
 	}
 	return wallet;
+}
+
+export function isCodeHash(hash: string): boolean {
+	return isBytes32(hash);
+}
+
+export function isTaskId(id: string): boolean {
+	return isBytes32(id);
+}
+
+export function isNodePk(pk: string): boolean {
+	return isBytes32(pk);
 }

@@ -2,11 +2,10 @@ import { Command } from 'commander';
 import { Provider, Signer, Wallet } from 'ethers';
 import { CodeManager } from '../libs/code';
 import { Code, Params } from '../libs/types';
-import { printCode, getWallet } from './common';
+import { printCode, getWallet, isCodeHash } from './common';
 import { Config, ABIs } from './types';
 import { readFileSync } from 'fs';
 import { join } from 'path';
-import { isBytes32 } from '../libs/common';
 import { LoggerFactory } from './Logger';
 
 const logger = LoggerFactory.getInstance();
@@ -94,7 +93,7 @@ export function addCodeCmd(program: Command, cfg: Config, provider: Provider, ab
 }
 
 async function get(params: Params, hash: string) {
-	if (!isBytes32(hash)) {
+	if (!isCodeHash(hash)) {
 		throw CodeInfoErr.InvalidHash(hash);
 	}
 
@@ -124,7 +123,7 @@ async function addOrUpdate(params: Params, backend: Signer, code: Code) {
 }
 
 async function remove(params: Params, backend: Signer, hash: string) {
-	if (!isBytes32(hash)) {
+	if (!isCodeHash(hash)) {
 		throw CodeInfoErr.InvalidHash(hash);
 	}
 

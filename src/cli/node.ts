@@ -2,11 +2,10 @@ import { Command } from "commander";
 import { Node, Params } from "../libs/types";
 import { NodeManager } from "../libs/node";
 import { Config, ABIs } from "./types";
-import { getWallet, printNode } from "./common";
+import { getWallet, isNodePk, printNode } from "./common";
 import { Wallet, Provider } from "ethers";
 import { readFileSync } from 'fs';
 import { join } from 'path';
-import { isBytes32 } from "../libs/common";
 import { LoggerFactory } from "./Logger";
 
 const logger = LoggerFactory.getInstance();
@@ -100,7 +99,7 @@ export function addNodeCmd(
 }
 
 async function get(params: Params, pk: string) {
-	if (!isBytes32(pk)) {
+	if (!isNodePk(pk)) {
 		throw NodeInfoErr.InvalidPk(pk);
 	}
 
@@ -130,7 +129,7 @@ async function add(params: Params, wallet: Wallet, node: Node) {
 }
 
 async function remove(params: Params, wallet: Wallet, pk: string) {
-	if (!isBytes32(pk)) {
+	if (!isNodePk(pk)) {
 		throw NodeInfoErr.InvalidPk(pk);	
 	}
 
