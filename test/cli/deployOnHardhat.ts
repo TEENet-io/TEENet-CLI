@@ -2,7 +2,7 @@ import { ethers } from "ethers";
 import { writeFileSync, mkdirSync, existsSync } from "fs";
 import { join } from "path";
 import { artifacts } from "hardhat";
-import { Config, files } from "../../src/cli/types";
+import { Config, files } from "../../src/cli/common";
 
 async function main() {
 	const exeDir = join(__dirname, '../../src/cli');
