@@ -1,8 +1,7 @@
 import { Command } from "commander";
 import { Node, Params } from "../libs/types";
 import { NodeManager } from "../libs/node";
-import { Config, ABIs } from "./types";
-import { getWallet, isNodePk, printNode } from "./common";
+import { getWallet, isNodePk, printNode, Config, ABIs } from "./common";
 import { Wallet, Provider } from "ethers";
 import { readFileSync } from 'fs';
 import { join } from 'path';

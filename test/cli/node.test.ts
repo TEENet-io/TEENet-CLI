@@ -7,13 +7,13 @@ import { NodeInfoErr } from '../../src/cli/node';
 describe('CLI Node', function () {
 	describe('add', function () {
 		it('should fail without backend wallet', function () {
-			const actual = test('node add 1 node.wallet9.json');
+			const actual = test('node add 1 node.w9.json');
 			const expected = 'unknown custom error';
 			expect(actual).to.include(expected);
 		});
 		it('should add node info', function () {
-			const node = loadNode('node.wallet9.json');
-			const actual = test(`node add 0 node.wallet9.json`);
+			const node = loadNode('node.w9.json');
+			const actual = test(`node add 0 node.w9.json`);
 			const expected = printNode(node);
 			expect(actual).to.include(expected);
 			test(`node remove 0 ${node.pk}`);
@@ -33,8 +33,8 @@ describe('CLI Node', function () {
 			expect(actual).to.include(expected);
 		});
 		it('should get correct node info', function () {
-			const node = loadNode('node.wallet9.json');
-			test(`node add 0 node.wallet9.json`);
+			const node = loadNode('node.w9.json');
+			test(`node add 0 node.w9.json`);
 			const actual = test(`node get ${node.pk}`);
 			const expected = printNode(node);
 			expect(actual).to.include(expected);
@@ -55,16 +55,16 @@ describe('CLI Node', function () {
 			expect(actual).to.include(expected);
 		});
 		it('should fail without backend wallet', function () {
-			const node = loadNode('node.wallet9.json');
-			test(`node add 0 node.wallet9.json`);
+			const node = loadNode('node.w9.json');
+			test(`node add 0 node.w9.json`);
 			const actual = test(`node remove 1 ${node.pk}`);
 			const expected = 'unknown custom error';
 			expect(actual).to.include(expected);
 			test(`node remove 0 ${node.pk}`);	
 		});
 		it('should remove node info', function () {
-			const node = loadNode('node.wallet9.json');
-			test(`node add 0 node.wallet9.json`);
+			const node = loadNode('node.w9.json');
+			test(`node add 0 node.w9.json`);
 			const actual = test(`node remove 0 ${node.pk}`);
 			const expected = node.pk;
 			expect(actual).to.include(expected);

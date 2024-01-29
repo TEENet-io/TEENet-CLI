@@ -1,9 +1,10 @@
 import { Code, Node, Task } from '../../src/libs/types';
 import { writeFileSync, readFileSync } from 'fs';
 import { Wallet } from 'ethers';
-import { files } from '../../src/cli/types';
+import { files } from '../../src/cli/common';
 import { join } from 'path';
 import { randBytes } from '../../src/libs/common';
+const JSONbig = require('json-bigint');
 
 const genCode = (): Code => {
 	const hash = randBytes(32);
@@ -23,14 +24,14 @@ const genNode = (owner: string): Node => {
 	}
 }
 
-const genTask = (owner: string, numDays: number, codeHash: string): Task => {
+const genTask = (owner: string, numDays: number, maxNodeNum: number, codeHash: string): Task => {
 	return {
 		id: randBytes(32),
 		owner: owner,
 		rewardPerNode: BigInt(Math.ceil(Math.random() * 100)),
 		start: BigInt(0),
 		numDays: BigInt(numDays),
-		maxNodeNum: BigInt(0),
+		maxNodeNum: BigInt(maxNodeNum),
 		codeHash: codeHash
 	}
 }
@@ -52,7 +53,7 @@ async function main() {
 	}
 
 	// Generate code info for testing update
-	const code = {...codes[0]};
+	const code = { ...codes[0] };
 	code.url = 'https://update.network';
 	writeFileSync(join(__dirname, dir, 'data', `code0.update.json`), JSON.stringify(code, null, 2));
 
@@ -64,8 +65,10 @@ async function main() {
 	// Generate valid node info
 	const nNode = 3;
 	const len = wallets.length;
+	let nodes: Node[] = [];
 	for (let i = 0; i < nNode; i++) {
-		writeFileSync(join(__dirname, dir, 'data', `node.wallet${len - i - 1}.json`), JSON.stringify(genNode(wallets[len - i - 1].address), null, 2));
+		nodes.push(genNode(wallets[len - i - 1].address));
+		writeFileSync(join(__dirname, dir, 'data', `node.w${len - i - 1}.json`), JSON.stringify(nodes[i], null, 2));
 	}
 
 	// Generate invalid node info
@@ -74,6 +77,16 @@ async function main() {
 	const zeroPK = genNode(randBytes(20));
 	zeroPK.pk = '0x' + '0'.repeat(64);
 	writeFileSync(join(__dirname, dir, 'data', `node.zeroPK.json`), JSON.stringify(zeroPK, null, 2));
+
+	// Generate valid tasks
+	const nTask = 3;
+	const numDays = [1, 2, 3];
+	const maxNodeNum = [1, 2, 3];
+	for (let i = 0; i < nTask; i++) {
+		const task = genTask(wallets[i + 1].address, numDays[i], maxNodeNum[i], codes[0].hash);
+		const file = join(__dirname, dir, 'data', `task.w${i + 1}.d${numDays[i]}.n${maxNodeNum[i]}.json`);
+		writeFileSync(file, JSONbig.stringify(task, null, 2));
+	}
 }
 
 main().catch((err) => {
