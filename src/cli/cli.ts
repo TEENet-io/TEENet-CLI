@@ -1,7 +1,7 @@
 import { Command } from 'commander';
 import { join } from 'path';
 import * as fs from 'fs';
-import { Config, files, ABIs } from './types';
+import { Config, files, ABIs } from './common';
 import { JsonRpcProvider, Wallet } from 'ethers';
 import { addWalletCmd } from './wallet';
 import { addCodeCmd } from './code';
@@ -9,6 +9,7 @@ import { addNodeCmd } from './node';
 import { isContract } from '../libs/common';
 
 import { LoggerFactory } from './Logger';
+import { addTaskCmd } from './task';
 
 const logger = LoggerFactory.getInstance();
 logger.on('log', (msg) => {
@@ -83,9 +84,9 @@ const wallets = loadWallets();
 /**
  * usage: 	teenet	task 	update								// download all task info from blockchain 
  *	 					 	list 								// list active or all task info
- * 						 	get <task_id>						// get details of a task
+ * 						 	get <id>							// get details of a task
  * 							add <addrOrIdx> <file>				// add a task
- * 							join <addOrIdx> <task_id> <tee_pk>	// join a task
+ * 							join <addOrIdx> <id> <pk>			// join a task
  * 							balance <addrOrIdx>					// get withdraw balance 
  * 							withdraw <addrOrIdx>				// withdraw balance
  * 
@@ -113,6 +114,7 @@ try {
 	addWalletCmd(program, wallets);
 	addCodeCmd(program, cfg, provider, abi, wallets);
 	addNodeCmd(program, cfg, provider, abi, wallets);
+	addTaskCmd(program, cfg, provider, abi, wallets);
 } catch (err: any) {
 	abort(err.message || 'Unknown error');
 }
