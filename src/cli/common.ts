@@ -2,6 +2,31 @@ import { Code, Node, Task } from "../libs/types";
 import { Wallet, isAddress } from 'ethers';
 import { isBytes32, isNumbericString } from "../libs/common";
 
+export interface Config {
+	ver: string;
+	url: string;
+	deployed: {
+		TaskMgr: string;
+		NodeInfo: string;
+		CodeInfo: string;
+	};
+}
+
+export const files = {
+	config: './config.teenet.json',
+	task: './task.teenet.json',
+	node: './node.teenet.json',
+	code: './code.teenet.json',
+	abi: './abi.teenet.json',
+	pk: './pk.teenet.json'
+}
+
+export type ABIs = {
+	TaskMgr: any[];
+	NodeInfo: any[];
+	CodeInfo: any[];
+}
+
 export function printCode(code: Code): string {
 	let output = "";
 	output += `Hash: ${code.hash}\n`;
@@ -31,19 +56,9 @@ export function printTask(task: Task) {
 	return output;
 }
 
-function getTaskExpireDate(task: Task): string {
+export function expireAt(task: Task): string {
 	const expireDate = new Date(Number(task.start) * 1000 + Number(task.numDays) * 24 * 60 * 60 * 1000);
 	return expireDate.toDateString();
-}
-
-export function printTaskList(tasks: Record<string, Task>) {
-	let output = "";
-	for (const id in tasks) {
-		const expireDate = new Date(getTaskExpireDate(tasks[id]));
-		output += `${id}\t${tasks[id].rewardPerNode}\t${expireDate}\n`;
-	}
-	output = output.trim();
-	return output;
 }
 
 export function printAddresses(addrs: string[]): string {
