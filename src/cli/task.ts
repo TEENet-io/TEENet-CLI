@@ -44,12 +44,12 @@ export function addTaskCmd(program: Command, cfg: Config, provider: Provider, ab
 		.command('update')
 		.description('Update task info')
 		.action(() => {
-			update({ provider, addr: cfg.deployed.TaskMgr, abi: abi.TaskMgr }).then((errOrNull) => {
-				if (errOrNull instanceof Error) {
-					abort(errOrNull.message || 'Unknown error');
-				}
-				logger.log('Updated local task info');
-			});
+			updateTaskinfo({ provider, addr: cfg.deployed.TaskMgr, abi: abi.TaskMgr })
+				.then((errOrNull) => {
+					if (errOrNull instanceof Error) {
+						abort(errOrNull.message || 'Unknown error');
+					}
+				});
 		});
 
 	taskCmd
@@ -61,14 +61,7 @@ export function addTaskCmd(program: Command, cfg: Config, provider: Provider, ab
 				abort(dataOrErr.message);
 				return;
 			}
-			let count = 0;
-			for (const id in dataOrErr.tasks) {
-				const task = dataOrErr.tasks[id];
-				const list = dataOrErr.nodeLists[id];
-				const msg = `[${count}]: ${id}, ${task.rewardPerNode}, ${expireAt(task)}, ${list.length} out of ${task.maxNodeNum}`;
-				logger.log(msg);
-				count++;
-			}
+			printTaskList(dataOrErr);
 		});
 
 	taskCmd
@@ -103,55 +96,20 @@ export function addTaskCmd(program: Command, cfg: Config, provider: Provider, ab
 			if (walletOrErr instanceof Error) {
 				abort(walletOrErr.message);
 			}
-
 			const wallet = walletOrErr as Wallet;
+
 			const taskOrErr = loadDataFromFile(file);
-			if(taskOrErr instanceof Error) {
+			if (taskOrErr instanceof Error) {
 				abort(taskOrErr.message);
 				return;
 			}
-			const task = taskOrErr as Task;
 
-			new TaskManager({
-				provider,
-				addr: cfg.deployed.TaskMgr,
-				abi: abi.TaskMgr
-			}).addTask(wallet, task).then((errOrNull) => {
-				if (errOrNull instanceof Error) {
-					abort(errOrNull.message || 'Unknown error');
-				}
-
-				let dataOrErr: Data | Error = { tasks: {}, nodeLists: {} };
-				if (existsSync(join(__dirname, 'data', files.task))) {
-					dataOrErr = loadTaskData();
-					if (dataOrErr instanceof Error) {
-						abort('Failed to update local task info. Run "teenet task update" to update\n' + dataOrErr.message);
-						return;
-					}
-				}
-
-				// Get task info from blockchain to get values for task.start and task.owner (if not set in file)
-				new TaskManager({
-					provider,
-					addr: cfg.deployed.TaskMgr,
-					abi: abi.TaskMgr
-				}).getTask(task.id).then((taskOrErr) => {
-					if (taskOrErr instanceof Error) {
-						abort('Failed to update local task info. Run "teenet task update" to update\n' + taskOrErr.message);
-						return;
-					}
-
-					logger.log('Added task info');
-					logger.log(printTask(task));
-
-					const data = dataOrErr as Data;
-					data.tasks[taskOrErr.id] = taskOrErr;
-					const errOrNull = saveTaskInfo(data);
+			addTask({ provider, addr: cfg.deployed.TaskMgr, abi: abi.TaskMgr }, wallet, taskOrErr as Task)
+				.then((errOrNull) => {
 					if (errOrNull instanceof Error) {
-						abort('Failed to update local task info. Run "teenet task update" to update\n' + errOrNull.message);
-					};
+						abort(errOrNull.message || 'Unknown error');
+					}
 				});
-			});
 		});
 	taskCmd
 		.command('join <addrOrIdx> <id> <pk>')
@@ -171,44 +129,12 @@ export function addTaskCmd(program: Command, cfg: Config, provider: Provider, ab
 				abort(`Invalid tee public key\n${pk}`);
 			}
 
-			if (!existsSync(join(__dirname, 'data', files.task))) {
-				abort('Local task info not found. Run "teenet task update" to update');
-			}
-
-			const dataOrErr = loadTaskData();
-			if (dataOrErr instanceof Error) {
-				abort('Failed to load task info\n' + dataOrErr.message);
-				return;
-			}
-
-			const tasks = dataOrErr.tasks;
-			const nodeLists = dataOrErr.nodeLists;
-
-			if (!(id in tasks)) {
-				abort(`Task not found locally\nid=${id}`);
-			}
-
-			if (nodeLists[id].length >= tasks[id].maxNodeNum) {
-				abort(`Task is full\nid=${id}`);
-			}
-
-			new TaskManager({
-				provider,
-				addr: cfg.deployed.TaskMgr,
-				abi: abi.TaskMgr
-			}).joinTask(walletOrErr, id, pk).then((e) => {
-				if (e instanceof Error) {
-					abort(e.message || 'Unknown error');
-				}
-
-				logger.log(`Joined task\nid=${id}\npk=${pk}`);
-
-				nodeLists[id].push(pk);
-				const errOrNull = saveTaskInfo({ tasks, nodeLists });
-				if (errOrNull instanceof Error) {
-					abort('Failed to update local task info. Run "teenet task update" to update\n' + errOrNull.message);
-				};
-			});
+			joinTask({ provider, addr: cfg.deployed.TaskMgr, abi: abi.TaskMgr }, walletOrErr, id, pk)
+				.then((errOrNull) => {
+					if (errOrNull instanceof Error) {
+						abort(errOrNull.message || 'Unknown error');
+					}
+				});
 		});
 	taskCmd
 		.command('balance <addrOrIdx>')
@@ -249,7 +175,7 @@ export function addTaskCmd(program: Command, cfg: Config, provider: Provider, ab
 					abort(errOrNull.message || 'Unknown error');
 					return;
 				}
-				logger.log(`Withdraw done\nAddress: ${walletOrErr.address}`);
+				logger.log(`Balance withdrawn\nAddress: ${walletOrErr.address}`);
 			});
 		});
 	taskCmd
@@ -263,7 +189,7 @@ export function addTaskCmd(program: Command, cfg: Config, provider: Provider, ab
 			}
 
 			const reqOrErr = loadDataFromFile(file);
-			if(reqOrErr instanceof Error) {
+			if (reqOrErr instanceof Error) {
 				abort(reqOrErr.message);
 				return;
 			}
@@ -276,34 +202,12 @@ export function addTaskCmd(program: Command, cfg: Config, provider: Provider, ab
 				abort(`No TEE nodes to reward`);
 			}
 
-			const dataOrErr = loadTaskData();
-			if (dataOrErr instanceof Error) {
-				abort('Failed to load task info\n' + dataOrErr.message);
-				return;
-			}
-			if(!(req.id in dataOrErr.tasks)) {
-				abort(`Task not found locally\nid=${req.id}`);
-			}
-			req.pks.forEach((pk) => {
-				if (!isNodePk(pk)) {
-					abort(`Invalid tee public key\npk=${pk}`);
-				}
-				if(!dataOrErr.nodeLists[req.id].includes(pk)) {
-					abort(`Public key not found in node list\npk=${pk}`);
-				}
-			});
-
-			new TaskManager({
-				provider,
-				addr: cfg.deployed.TaskMgr,
-				abi: abi.TaskMgr
-			}).reward(walletOrErr, req.id, req.pks).then((errOrNull) => {
-				if (errOrNull instanceof Error) {
-					abort(errOrNull.message || 'Unknown error');
-					return;
-				}
-				logger.log(`Reward distributed\nid=${req.id}\npks=${JSON.stringify(req.pks)}`);
-			});
+			reward({ provider, addr: cfg.deployed.TaskMgr, abi: abi.TaskMgr }, walletOrErr, req.id, req.pks)
+				.then((errOrNull) => {
+					if (errOrNull instanceof Error) {
+						abort(errOrNull.message || 'Unknown error');
+					}
+				});
 		});
 }
 
@@ -312,7 +216,7 @@ function loadDataFromFile(file: string) {
 
 	let data: any;
 	try {
-		data = JSON.parse(readFileSync(file, 'utf-8'));
+		data = JSON.parse(readFileSync(_file, 'utf-8'));
 	} catch (err: any) {
 		return new Error(`Failed to load task data\nfile=${err.message}`);
 	}
@@ -341,11 +245,22 @@ function saveTaskInfo(data: Data): Error | null {
 	return null;
 }
 
-async function update(param: Params): Promise<Error | null> {
+function printTaskList(data: Data) {
+	let count = 0;
+	for (const id in data.tasks) {
+		const task = data.tasks[id];
+		const list = data.nodeLists[id];
+		const msg = `[${count}]: ${id}, ${task.rewardPerNode}, ${expireAt(task)}, ${list.length} out of ${task.maxNodeNum}`;
+		logger.log(msg);
+		count++;
+	}
+}
+
+async function updateTaskinfo(param: Params): Promise<Error | null> {
 	const taskManager = new TaskManager(param);
 	const ids = await taskManager.getTaskIds();
 	if (ids instanceof Error) {
-		throw new Error(ids.message);
+		return new Error(ids.message);
 	}
 	const tasks: Record<string, Task> = {};
 	const nodeLists: Record<string, string[]> = {};
@@ -353,17 +268,117 @@ async function update(param: Params): Promise<Error | null> {
 	for (const id of ids) {
 		const tasksOrErr = await taskManager.getTask(id);
 		if (tasksOrErr instanceof Error) {
-			throw new Error(tasksOrErr.message);
+			return new Error(tasksOrErr.message);
 		}
 		tasks[tasksOrErr.id] = tasksOrErr;
 		const listOrErr = await taskManager.getNodeList(id);
 		if (listOrErr instanceof Error) {
-			throw new Error(listOrErr.message);
+			return new Error(listOrErr.message);
 		}
 		if (listOrErr) {
 			nodeLists[id] = listOrErr;
 		}
 	}
 
-	return saveTaskInfo({ tasks, nodeLists });
+	const errOrNull = saveTaskInfo({ tasks, nodeLists });
+	if (errOrNull instanceof Error) {
+		return errOrNull;
+	}
+
+	logger.log('Updated local task info');
+	return null;
+}
+
+async function addTask(param: Params, wallet: Wallet, task: Task): Promise<Error | null> {
+	const taskManager = new TaskManager(param);
+	let errOrNull = await taskManager.addTask(wallet, task);
+	if (errOrNull instanceof Error) {
+		abort(errOrNull.message || 'Unknown error');
+	}
+
+	logger.log('Added task info');
+	logger.log(printTask(task));
+
+	let dataOrErr: Data | Error = { tasks: {}, nodeLists: {} };
+	if (existsSync(join(__dirname, 'data', files.task))) {
+		dataOrErr = loadTaskData();
+		if (dataOrErr instanceof Error) {
+			return new Error('Failed to update local task info. Run "teenet task update" to update\n' + dataOrErr.message);
+		}
+	}
+
+	// Get task info from blockchain to get values for task.start and task.owner (if not set in file)
+	const taskOrErr = await taskManager.getTask(task.id);
+	if (taskOrErr instanceof Error) {
+		return new Error('Failed to update local task info. Run "teenet task update" to update\n' + taskOrErr.message);
+	}
+	dataOrErr.tasks[taskOrErr.id] = taskOrErr;
+
+	errOrNull = saveTaskInfo(dataOrErr);
+	if (errOrNull instanceof Error) {
+		return new Error('Failed to update local task info. Run "teenet task update" to update\n' + errOrNull.message);
+	};
+
+	return null;
+}
+
+async function joinTask(param: Params, wallet: Wallet, id: string, pk: string): Promise<Error | null> {
+	const dataOrErr = loadTaskData();
+	if (dataOrErr instanceof Error) {
+		return new Error('Failed to load task info\n' + dataOrErr.message);
+	}
+
+	const tasks = dataOrErr.tasks;
+	const nodeLists = dataOrErr.nodeLists;
+
+	if (!(id in tasks)) {
+		return new Error(`Task not found locally\nid=${id}`);
+	}
+
+	if (nodeLists[id].length >= tasks[id].maxNodeNum) {
+		abort(`Task is full\nid=${id}`);
+	}
+
+	const taskManager = new TaskManager(param);
+	let errOrNull = await taskManager.joinTask(wallet, id, pk);
+	if (errOrNull instanceof Error) {
+		return new Error(errOrNull.message);
+	}
+
+	logger.log(`Joined task\nid=${id}\npk=${pk}`);
+
+	nodeLists[id].push(pk);
+	errOrNull = saveTaskInfo({ tasks, nodeLists });
+	if (errOrNull instanceof Error) {
+		abort('Failed to update local task info. Run "teenet task update" to update\n' + errOrNull.message);
+	};
+
+	return null;
+}
+
+async function reward(param: Params, wallet: Wallet, id: string, pks: string[]): Promise<Error | null> {
+	const dataOrErr = loadTaskData();
+	if (dataOrErr instanceof Error) {
+		return new Error('Failed to load task info\n' + dataOrErr.message);
+	}
+	if (!(id in dataOrErr.tasks)) {
+		return new Error(`Task not found locally\nid=${id}`);
+	}
+	pks.forEach((pk) => {
+		if (!isNodePk(pk)) {
+			return new Error(`Invalid tee public key\npk=${pk}`);
+		}
+		if (!dataOrErr.nodeLists[id].includes(pk)) {
+			return new Error(`Public key not found in node list\npk=${pk}`);
+		}
+	});
+
+	const taskManager = new TaskManager(param);
+	const errOrNull = await taskManager.reward(wallet, id, pks);
+	if (errOrNull instanceof Error) {
+		return new Error(errOrNull.message);
+	}
+	logger.log(`Reward distributed\nid=${id}\npks=${JSON.stringify(pks)}`);
+
+	return null;
 }
