@@ -5,7 +5,6 @@ import { Config, files, ABIs } from './types';
 import { JsonRpcProvider, Wallet } from 'ethers';
 import { addWalletCmd } from './wallet';
 import { addCodeCmd } from './code';
-import { abort } from './common';
 import { addNodeCmd } from './node';
 import { isContract } from '../libs/common';
 
@@ -16,13 +15,18 @@ logger.on('log', (msg) => {
 	console.log(msg);
 });
 
+function abort(msg: string) {
+	logger.log(msg);
+	process.exit(1);
+}
+
 // Load config file
 const loadConfig = () => {
 	const fConfig = join(__dirname, files.config);
 	try {
 		return JSON.parse(fs.readFileSync(fConfig, 'utf-8'));
 	} catch (err: any) {
-		abort(logger, err.message);
+		abort(err.message);
 	}
 }
 const cfg: Config = loadConfig();
@@ -31,7 +35,7 @@ const cfg: Config = loadConfig();
 const getProvider = (): JsonRpcProvider => {
 	const provider = new JsonRpcProvider(cfg.url);
 	provider.getBlockNumber().catch((err) => {
-		abort(logger, 'Invalid rpc url');
+		abort('Invalid rpc url');
 	});
 	return provider;
 }
@@ -42,7 +46,7 @@ const keys = Object.keys(cfg.deployed) as Array<keyof typeof cfg.deployed>;
 keys.forEach((key) => {
 	isContract(provider, cfg.deployed[key]).then((is) => {
 		if (!is) {
-			abort(logger, `${key} contract address is not a contract: ${cfg.deployed[key]}`);
+			abort(`${key} contract address is not a contract: ${cfg.deployed[key]}`);
 		}
 	})
 });
@@ -53,7 +57,7 @@ const loadAbi = () => {
 	try {
 		return JSON.parse(fs.readFileSync(fAbi, 'utf-8'));
 	} catch (err: any) {
-		abort(logger, err.message);
+		abort(err.message);
 	}
 }
 const abi: ABIs = loadAbi();
@@ -65,7 +69,7 @@ const loadWallets = () => {
 	try {
 		pks = JSON.parse(fs.readFileSync(fPk, 'utf-8'));
 	} catch (err: any) {
-		abort(logger, err.message);
+		abort(err.message);
 	}
 	const wallets: Record<string, Wallet> = {};
 	for (const pk of pks) {
@@ -78,17 +82,17 @@ const wallets = loadWallets();
 
 /**
  * usage: 	teenet	task 	update								// download all task info from blockchain 
- *	 					 	list <active|expired|all>			// list active or all task info
+ *	 					 	list 								// list active or all task info
  * 						 	get <task_id>						// get details of a task
  * 							add <addrOrIdx> <file>				// add a task
  * 							join <addOrIdx> <task_id> <tee_pk>	// join a task
  * 							balance <addrOrIdx>					// get withdraw balance 
  * 							withdraw <addrOrIdx>				// withdraw balance
  * 
- * 			teenet 	node 	get <node_id>							// get node info
- * 							addOrUpdate <addrOrIdx> <file>			// add node info
- * 							remove <addrOrIdx> <pk>					// remove node info
- * 							register <file>							// send node info to backend for registration	
+ * 			teenet 	node 	get <node_id>						// get node info
+ * 							add <addrOrIdx> <file>				// add node info
+ * 							remove <addrOrIdx> <pk>				// remove node info
+ * 							register <file>						// send node info to backend for registration	
  * 
  * 			teenet	code 	get <hash>								// get code info
  * 							addOrUpdate <addrOrIdx> <file>			// add code info
@@ -110,7 +114,7 @@ try {
 	addCodeCmd(program, cfg, provider, abi, wallets);
 	addNodeCmd(program, cfg, provider, abi, wallets);
 } catch (err: any) {
-	abort(logger, err.message || 'Unknown error');
+	abort(err.message || 'Unknown error');
 }
 
 program.parse(process.argv);

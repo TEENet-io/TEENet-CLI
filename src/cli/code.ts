@@ -2,7 +2,7 @@ import { Command } from 'commander';
 import { Provider, Signer, Wallet } from 'ethers';
 import { CodeManager } from '../libs/code';
 import { Code, Params } from '../libs/types';
-import { printCode, abort, getWallet } from './common';
+import { printCode, getWallet } from './common';
 import { Config, ABIs } from './types';
 import { readFileSync } from 'fs';
 import { join } from 'path';
@@ -10,6 +10,10 @@ import { isBytes32 } from '../libs/common';
 import { LoggerFactory } from './Logger';
 
 const logger = LoggerFactory.getInstance();
+export function abort(msg: string) {
+	logger.log(msg);
+	process.exit(1);
+}
 
 export class CodeInfoErr {
 	public static readonly NotFound = (hash: string) => new Error(`Code info not found\nhash=${hash}`);
@@ -36,7 +40,7 @@ export function addCodeCmd(program: Command, cfg: Config, provider: Provider, ab
 				addr: cfg.deployed.CodeInfo,
 				abi: abi.CodeInfo
 			}, hash).catch((err) => {
-				abort(logger, err.message || 'Unknown error');
+				abort(err.message || 'Unknown error');
 			});
 		});
 
@@ -46,7 +50,7 @@ export function addCodeCmd(program: Command, cfg: Config, provider: Provider, ab
 		.action((addrOrIdx, file) => {
 			const walletOrErr = getWallet(addrOrIdx, wallets);
 			if (walletOrErr instanceof Error) {
-				abort(logger, walletOrErr.message);
+				abort(walletOrErr.message);
 			}
 
 			const wallet = walletOrErr as Wallet;
@@ -55,7 +59,7 @@ export function addCodeCmd(program: Command, cfg: Config, provider: Provider, ab
 			try {
 				code = JSON.parse(readFileSync(_file, 'utf-8'));
 			} catch (err: any) {
-				abort(logger, err.message);
+				abort(err.message);
 				return;
 			}
 			
@@ -64,7 +68,7 @@ export function addCodeCmd(program: Command, cfg: Config, provider: Provider, ab
 				addr: cfg.deployed.CodeInfo,
 				abi: abi.CodeInfo
 			}, wallet, code).catch((err) => {
-				abort(logger, err.message || 'Unknown error');
+				abort(err.message || 'Unknown error');
 			});
 		});
 
@@ -74,7 +78,7 @@ export function addCodeCmd(program: Command, cfg: Config, provider: Provider, ab
 		.action((addrOrIdx, hash) => {
 			const walletOrErr = getWallet(addrOrIdx, wallets);
 			if (walletOrErr instanceof Error) {
-				abort(logger, walletOrErr.message);
+				abort(walletOrErr.message);
 			}
 
 			const wallet = walletOrErr as Wallet;
@@ -84,7 +88,7 @@ export function addCodeCmd(program: Command, cfg: Config, provider: Provider, ab
 				addr: cfg.deployed.CodeInfo,
 				abi: abi.CodeInfo
 			}, wallet, hash).catch((err) => {
-				abort(logger, err.message || 'Unknown error');
+				abort(err.message || 'Unknown error');
 			});;
 		});
 }

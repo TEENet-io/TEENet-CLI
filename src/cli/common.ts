@@ -1,7 +1,6 @@
 import { Code, Node, Task } from "../libs/types";
 import { Wallet, isAddress } from 'ethers';
 import { isNumbericString } from "../libs/common";
-import { Logger } from "./Logger";
 
 export function printCode(code: Code): string {
 	let output = "";
@@ -32,6 +31,11 @@ export function printTask(task: Task) {
 	return output;
 }
 
+export function printTaskList(tasks: Record<string, Task>) {
+	let output = "";
+	return output;
+}
+
 export function printAddresses(addrs: string[]): string {
 	let output = "";
 	for (let idx: number = 0; idx < addrs.length; idx++) {
@@ -39,11 +43,6 @@ export function printAddresses(addrs: string[]): string {
 	}
 	output = output.trim();
 	return output;
-}
-
-export function abort(logger: Logger, msg: string) {
-	logger.log(msg);
-	process.exit(1);
 }
 
 export class WalletErr {

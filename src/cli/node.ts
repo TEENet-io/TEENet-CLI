@@ -2,7 +2,7 @@ import { Command } from "commander";
 import { Node, Params } from "../libs/types";
 import { NodeManager } from "../libs/node";
 import { Config, ABIs } from "./types";
-import { abort, getWallet, printNode } from "./common";
+import { getWallet, printNode } from "./common";
 import { Wallet, Provider } from "ethers";
 import { readFileSync } from 'fs';
 import { join } from 'path';
@@ -10,6 +10,10 @@ import { isBytes32 } from "../libs/common";
 import { LoggerFactory } from "./Logger";
 
 const logger = LoggerFactory.getInstance();
+export function abort(msg: string) {
+	logger.log(msg);
+	process.exit(1);
+}
 
 export class NodeInfoErr {
 	public static readonly NotFound = (pk: string) => new Error(`Node info not found\npk=${pk}`);
@@ -42,7 +46,7 @@ export function addNodeCmd(
 				addr: cfg.deployed.NodeInfo,
 				abi: abi.NodeInfo
 			}, pk).catch((err) => {
-				abort(logger, err.message || 'Unknown error');
+				abort(err.message || 'Unknown error');
 			});
 		});
 
@@ -52,7 +56,7 @@ export function addNodeCmd(
 		.action((addrOrIdx, file) => {
 			const walletOrErr = getWallet(addrOrIdx, wallets);
 			if (walletOrErr instanceof Error) {
-				abort(logger, walletOrErr.message);
+				abort(walletOrErr.message);
 			}
 
 			const wallet = walletOrErr as Wallet;
@@ -62,7 +66,7 @@ export function addNodeCmd(
 			try {
 				node = JSON.parse(readFileSync(_file, 'utf-8'));
 			} catch (err: any) {
-				abort(logger, err.message);
+				abort(err.message);
 				return;
 			}
 
@@ -71,7 +75,7 @@ export function addNodeCmd(
 				addr: cfg.deployed.NodeInfo,
 				abi: abi.NodeInfo
 			}, wallet, node).catch((err) => {
-				abort(logger, err.message || 'Unknown error');
+				abort(err.message || 'Unknown error');
 			});
 		});
 
@@ -81,7 +85,7 @@ export function addNodeCmd(
 		.action((addrOrIdx, pk) => {
 			const walletOrErr = getWallet(addrOrIdx, wallets);
 			if (walletOrErr instanceof Error) {
-				abort(logger, walletOrErr.message);
+				abort(walletOrErr.message);
 			}
 
 			const wallet = walletOrErr as Wallet;
@@ -90,7 +94,7 @@ export function addNodeCmd(
 				addr: cfg.deployed.NodeInfo,
 				abi: abi.NodeInfo
 			}, wallet, pk).catch((err) => {
-				abort(logger, err.message || 'Unknown error');
+				abort(err.message || 'Unknown error');
 			});
 		});
 }
