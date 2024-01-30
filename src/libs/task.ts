@@ -51,6 +51,7 @@ export class TaskManager {
 		}
 	}
 
+	// Return null if task does not exist
 	public async getNodeList(id: string): Promise<string[] | null | Error> {
 		try {
 			const contract = new Contract(this._addr, this._abi, this._provider);
