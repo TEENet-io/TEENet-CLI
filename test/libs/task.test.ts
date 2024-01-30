@@ -41,7 +41,7 @@ describe("TaskMgr", function () {
 			genNode(otherAccounts[7].address),
 		];
 		for(const node of nodes) {
-			await nodeInfo.connect(backend).addOrUpdate(node);
+			await nodeInfo.connect(backend).add(node);
 		}
 
 		const genTask = (owner: string, maxNodeNum: bigint, numDays: bigint) => {
