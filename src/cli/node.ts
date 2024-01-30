@@ -1,10 +1,8 @@
 import { Command } from "commander";
 import { Node, Params } from "../libs/types";
 import { NodeManager } from "../libs/node";
-import { getWallet, isNodePk, printNode, Config, ABIs } from "./common";
+import { getWallet, isNodePk, printNode, Config, ABIs, loadDataFromFile } from "./common";
 import { Wallet, Provider } from "ethers";
-import { readFileSync } from 'fs';
-import { join } from 'path';
 import { LoggerFactory } from "./Logger";
 
 const logger = LoggerFactory.getInstance();
@@ -57,22 +55,16 @@ export function addNodeCmd(
 				abort(walletOrErr.message);
 			}
 
-			const wallet = walletOrErr as Wallet;
-
-			const _file = join(__dirname, 'data', file);
-			let node: Node;
-			try {
-				node = JSON.parse(readFileSync(_file, 'utf-8'));
-			} catch (err: any) {
-				abort(err.message);
-				return;
+			const nodeOrErr = loadDataFromFile(file);
+			if(nodeOrErr instanceof Error) {
+				abort(nodeOrErr.message);
 			}
 
 			add({
 				provider,
 				addr: cfg.deployed.NodeInfo,
 				abi: abi.NodeInfo
-			}, wallet, node).catch((err) => {
+			}, walletOrErr as Wallet, nodeOrErr as Node).catch((err) => {
 				abort(err.message || 'Unknown error');
 			});
 		});

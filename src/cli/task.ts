@@ -5,7 +5,7 @@ import { TaskManager } from '../libs/task';
 import { Task, Params } from '../libs/types';
 import { readFileSync, writeFileSync, existsSync } from 'fs';
 import { LoggerFactory } from './Logger';
-import { getWallet, printTask, expireAt, isTaskId, isNodePk, Config, ABIs, files } from './common';
+import { getWallet, printTask, expireAt, isTaskId, isNodePk, Config, ABIs, files, loadDataFromFile } from './common';
 const JSONbig = require('json-bigint');
 
 const logger = LoggerFactory.getInstance();
@@ -209,18 +209,6 @@ export function addTaskCmd(program: Command, cfg: Config, provider: Provider, ab
 					}
 				});
 		});
-}
-
-function loadDataFromFile(file: string) {
-	const _file = join(__dirname, 'data', file);
-
-	let data: any;
-	try {
-		data = JSON.parse(readFileSync(_file, 'utf-8'));
-	} catch (err: any) {
-		return new Error(`Failed to load task data\nfile=${err.message}`);
-	}
-	return data;
 }
 
 function loadTaskData(): Data | Error {

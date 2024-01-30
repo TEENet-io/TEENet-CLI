@@ -1,6 +1,8 @@
 import { Code, Node, Task } from "../libs/types";
 import { Wallet, isAddress } from 'ethers';
 import { isBytes32, isNumbericString } from "../libs/common";
+import { join } from 'path';
+import { readFileSync } from 'fs';
 
 export interface Config {
 	ver: string;
@@ -107,4 +109,16 @@ export function isTaskId(id: string): boolean {
 
 export function isNodePk(pk: string): boolean {
 	return isBytes32(pk);
+}
+
+export function loadDataFromFile(file: string) {
+	const _file = join(__dirname, 'data', file);
+
+	let data: any;
+	try {
+		data = JSON.parse(readFileSync(_file, 'utf-8'));
+	} catch (err: any) {
+		return new Error(`Failed to load task data\nfile=${err.message}`);
+	}
+	return data;
 }

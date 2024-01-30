@@ -2,9 +2,7 @@ import { Command } from 'commander';
 import { Provider, Signer, Wallet } from 'ethers';
 import { CodeManager } from '../libs/code';
 import { Code, Params } from '../libs/types';
-import { printCode, getWallet, isCodeHash, Config, ABIs } from './common';
-import { readFileSync } from 'fs';
-import { join } from 'path';
+import { printCode, getWallet, isCodeHash, Config, ABIs, loadDataFromFile } from './common';
 import { LoggerFactory } from './Logger';
 
 const logger = LoggerFactory.getInstance();
@@ -33,6 +31,10 @@ export function addCodeCmd(program: Command, cfg: Config, provider: Provider, ab
 		.command('get <hash>')
 		.description('Get code info by hash')
 		.action((hash) => {
+			if(!isCodeHash(hash)) {
+				abort(CodeInfoErr.InvalidHash(hash).message);
+			}
+
 			get({
 				provider,
 				addr: cfg.deployed.CodeInfo,
@@ -52,20 +54,16 @@ export function addCodeCmd(program: Command, cfg: Config, provider: Provider, ab
 			}
 
 			const wallet = walletOrErr as Wallet;
-			const _file = join(__dirname, 'data', file);
-			let code: Code;
-			try {
-				code = JSON.parse(readFileSync(_file, 'utf-8'));
-			} catch (err: any) {
-				abort(err.message);
-				return;
+			const CodeInfoErr = loadDataFromFile(file);
+			if(CodeInfoErr instanceof Error) {
+				abort(CodeInfoErr.message);
 			}
 			
 			addOrUpdate({
 				provider,
 				addr: cfg.deployed.CodeInfo,
 				abi: abi.CodeInfo
-			}, wallet, code).catch((err) => {
+			}, wallet, CodeInfoErr as Code).catch((err) => {
 				abort(err.message || 'Unknown error');
 			});
 		});
@@ -92,10 +90,6 @@ export function addCodeCmd(program: Command, cfg: Config, provider: Provider, ab
 }
 
 async function get(params: Params, hash: string) {
-	if (!isCodeHash(hash)) {
-		throw CodeInfoErr.InvalidHash(hash);
-	}
-
 	const codeManager = new CodeManager(params);
 	if(!(await codeManager.codeExists(hash))) {
 		throw CodeInfoErr.NotFound(hash);
