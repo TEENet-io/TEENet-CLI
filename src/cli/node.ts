@@ -60,6 +60,10 @@ export function addNodeCmd(
 				abort(nodeOrErr.message);
 			}
 
+			if(!isNodePk(nodeOrErr.pk)) {
+				abort(NodeInfoErr.InvalidPk(nodeOrErr.pk).message);
+			}
+
 			add({
 				provider,
 				addr: cfg.deployed.NodeInfo,
@@ -95,10 +99,6 @@ async function get(params: Params, pk: string) {
 	}
 
 	const nodeManager = new NodeManager(params);
-	if(!(await nodeManager.nodeExists(pk))) {
-		throw NodeInfoErr.NotFound(pk);
-	}
-
 	const ret = await nodeManager.getNodeInfo(pk);
 	if (ret instanceof Error) {
 		throw new Error(ret.message);
@@ -125,6 +125,10 @@ async function remove(params: Params, wallet: Wallet, pk: string) {
 	}
 
 	const nodeManager = new NodeManager(params);
+	
+	// Testing the existence of the node pk is necessary since
+	// execute remove on contract with a non-existing node pk
+	// would not generate error.
 	if(!(await nodeManager.nodeExists(pk))) {
 		throw NodeInfoErr.NotFound(pk);
 	}

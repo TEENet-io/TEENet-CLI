@@ -2,16 +2,7 @@ import { join } from 'path';
 import { readFileSync } from 'fs';
 import { assert } from 'chai';
 import { Wallet } from 'ethers';
-import { execSync } from 'child_process';
 import { Code } from '../../src/libs/types';
-
-export function test(cmd: string): string {
-	try {
-		return execSync('npx ts-node src/cli/cli.ts ' + cmd).toString();
-	} catch (err: any) {
-		return err.output[1].toString();
-	}
-}
 
 export const exeDir = join(__dirname, '../../src/cli');
 export const cfgFile = join(exeDir, 'config.teenet.json');
@@ -47,7 +38,7 @@ const loadCodes = () => {
 }
 export const codes = loadCodes();
 
-export const loadNode = (file: string) => {
+export const loadFile = (file: string) => {
 	try {
 		return JSON.parse(readFileSync(join(dataDir, file), 'utf-8'));
 	} catch (err: any) {

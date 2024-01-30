@@ -53,17 +53,20 @@ export function addCodeCmd(program: Command, cfg: Config, provider: Provider, ab
 				abort(walletOrErr.message);
 			}
 
-			const wallet = walletOrErr as Wallet;
-			const CodeInfoErr = loadDataFromFile(file);
-			if(CodeInfoErr instanceof Error) {
-				abort(CodeInfoErr.message);
+			const codeOrErr = loadDataFromFile(file);
+			if(codeOrErr instanceof Error) {
+				abort(codeOrErr.message);
 			}
 			
+			if(!isCodeHash(codeOrErr.hash)) {
+				abort(CodeInfoErr.InvalidHash(codeOrErr.hash).message);
+			}
+
 			addOrUpdate({
 				provider,
 				addr: cfg.deployed.CodeInfo,
 				abi: abi.CodeInfo
-			}, wallet, CodeInfoErr as Code).catch((err) => {
+			}, walletOrErr as Wallet, codeOrErr as Code).catch((err) => {
 				abort(err.message || 'Unknown error');
 			});
 		});
@@ -121,6 +124,10 @@ async function remove(params: Params, backend: Signer, hash: string) {
 	}
 
 	const codeManager = new CodeManager(params);
+
+	// Testing the existence of the code hash is necessary since
+	// execute remove on contract with a non-existing code hash
+	// would not generate error.
 	if(!(await codeManager.codeExists(hash))) {
 		throw CodeInfoErr.NotFound(hash);
 	}

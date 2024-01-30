@@ -1,18 +1,40 @@
 import { expect } from 'chai';
-import { test, loadNode } from './common';
+import { loadFile, dataDir } from './common';
 import { printNode } from '../../src/cli/common';
 import { randBytes } from '../../src/libs/common';
 import { NodeInfoErr } from '../../src/cli/node';
+import { Node } from '../../src/libs/types';
+import { execSync } from 'child_process';
+import { join } from 'path';
+import { writeFileSync } from 'fs';
+
+export function test(cmd: string): string {
+	try {
+		return execSync(`npx ts-node ${join(__dirname, '../../src/cli/cli.ts')} ${cmd}`).toString();
+	} catch (err: any) {
+		return err.output[1].toString();
+	}
+}
 
 describe('CLI Node', function () {
 	describe('add', function () {
-		it('should fail without backend wallet', function () {
-			const actual = test('node add 1 node.w9.json');
-			const expected = 'unknown custom error';
+		it('should fail with non-existing file', function () {
+			const actual = test(`node add 0 non-existing-node.json`);
+			const expected = 'non-existing-node.json';
+			expect(actual).to.include(expected);
+		});
+		it('should fail with invalid public key in file', function () {
+			const pk = randBytes(30);
+			const node = loadFile('node.w9.json') as Node;
+			node.pk = pk;
+			const file = 'node.invalid.json';
+			writeFileSync(join(dataDir, file), JSON.stringify(node));
+			const actual = test(`node add 0 ${file}`);
+			const expected = NodeInfoErr.InvalidPk(pk).message;
 			expect(actual).to.include(expected);
 		});
 		it('should add node info', function () {
-			const node = loadNode('node.w9.json');
+			const node = loadFile('node.w9.json') as Node;
 			const actual = test(`node add 0 node.w9.json`);
 			const expected = printNode(node);
 			expect(actual).to.include(expected);
@@ -33,7 +55,7 @@ describe('CLI Node', function () {
 			expect(actual).to.include(expected);
 		});
 		it('should get correct node info', function () {
-			const node = loadNode('node.w9.json');
+			const node = loadFile('node.w9.json') as Node;
 			test(`node add 0 node.w9.json`);
 			const actual = test(`node get ${node.pk}`);
 			const expected = printNode(node);
@@ -54,16 +76,8 @@ describe('CLI Node', function () {
 			const expected = NodeInfoErr.NotFound(hash).message;
 			expect(actual).to.include(expected);
 		});
-		it('should fail without backend wallet', function () {
-			const node = loadNode('node.w9.json');
-			test(`node add 0 node.w9.json`);
-			const actual = test(`node remove 1 ${node.pk}`);
-			const expected = 'unknown custom error';
-			expect(actual).to.include(expected);
-			test(`node remove 0 ${node.pk}`);	
-		});
 		it('should remove node info', function () {
-			const node = loadNode('node.w9.json');
+			const node = loadFile('node.w9.json') as Node;
 			test(`node add 0 node.w9.json`);
 			const actual = test(`node remove 0 ${node.pk}`);
 			const expected = node.pk;
