@@ -40,7 +40,8 @@ export const codes = loadCodes();
 
 export const loadFile = (file: string) => {
 	try {
-		return JSON.parse(readFileSync(join(dataDir, file), 'utf-8'));
+		const _file = join(dataDir, file);
+		return JSON.parse(readFileSync(_file, 'utf-8'));
 	} catch (err: any) {
 		assert.fail(err.message);
 	}
