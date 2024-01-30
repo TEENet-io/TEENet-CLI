@@ -1,2 +1,2 @@
 # TEENet
-A TEE network that provides a decentralised solution to security guarantee 
+TEENet is a Decentralized Physical Infrastructure Network (DePIN) formed by machines that are equipped with Trusted Execution Environment (TEE). It provides an effective and efficient solution to crowdsourcing TEE computing power for computations that require security, integrity and confidentiality. In the context of Web3, these computations could be cross-chain transaction validation, Layer2 transaction validation or staking validation, etc.  
