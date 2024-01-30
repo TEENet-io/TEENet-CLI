@@ -58,6 +58,18 @@ export function printTask(task: Task) {
 	return output;
 }
 
+export function printTaskList(tasks: Record<string, Task>, nodeLists: Record<string, string[]>): string {
+	let output = "";
+	let count = 0;
+	for (const id in tasks) {
+		const task = tasks[id];
+		const list = nodeLists[id];
+		output += `[${count}]: ${id}, ${task.rewardPerNode}, ${expireAt(task)}, ${list.length} out of ${task.maxNodeNum}\n`;
+		count++;
+	}
+	return output.trim();
+}
+
 export function expireAt(task: Task): string {
 	const expireDate = new Date(Number(task.start) * 1000 + Number(task.numDays) * 24 * 60 * 60 * 1000);
 	return expireDate.toDateString();
