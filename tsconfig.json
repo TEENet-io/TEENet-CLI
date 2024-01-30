@@ -6,6 +6,23 @@
     "forceConsistentCasingInFileNames": true,
     "strict": true,
     "skipLibCheck": true,
-    "resolveJsonModule": true
-  }
+    "resolveJsonModule": true,
+
+	// "rootDir": "./src",
+	// "outDir": "./dist"
+  },
+//   "exclude": [
+// 	"node_modules",
+// 	"dist",
+// 	"test",
+// 	"scripts",
+// 	"artifacts",
+// 	"artifacts-dbg",
+// 	"cache",
+// 	"contracts",
+// 	"contracts-dbg",
+// 	"typechain-types",
+// 	"./hardhat.config.ts",
+// 	"./tmp.ts"
+//   ]
 }

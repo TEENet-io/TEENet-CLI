@@ -1,6 +1,8 @@
 # project
-deployOn*.json
 tmp*.*
+src/cli/data/
+src/cli/wallet/
+*.teenet.json
 
 # hardhat
 artifacts/
@@ -36,3 +38,6 @@ package-lock.json
 
 # Ignore yarn.lock for Yarn
 yarn.lock
+
+# vscode
+.DS_Store
