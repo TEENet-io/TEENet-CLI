@@ -5,7 +5,10 @@
   "main": "index.js",
   "scripts": {
     "testhh": "yarn hardhat test",
-    "runhh": "yarn hardhat run"
+    "runhh": "yarn hardhat run",
+	"test-contracts": "hardhat test test/contracts/*.test.ts",
+	"test-libs": "hardhat test test/libs/*.test.ts",
+	"test-cli": "mocha --exit --no-timeouts --bail --color --require ts-node/register test/cli/*.test.ts"
   },
   "author": "Peter Zhou",
   "license": "MIT",
