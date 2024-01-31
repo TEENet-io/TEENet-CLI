@@ -17,7 +17,7 @@ export function test(cmd: string): string {
 describe('CLI Code', function () {
 	let code: any;
 	before(function () {
-		execSync(`npx ts-node ${join(__dirname, './deployOnHardhat.ts')}`);
+		execSync(`npx ts-node ${join(__dirname, '../../script/deployOnHardhat.ts')}`);
 		execSync(`npx ts-node ${join(__dirname, './prepareData.ts')}`);
 		code = loadFile('code0.json')
 	});

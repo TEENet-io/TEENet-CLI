@@ -18,7 +18,7 @@ function test(cmd: string): string {
 
 describe('CLI Task', function () {
 	before(function () {
-		execSync(`npx ts-node ${join(__dirname, './deployOnHardhat.ts')}`);
+		execSync(`npx ts-node ${join(__dirname, '../../script/deployOnHardhat.ts')}`);
 		execSync(`npx ts-node ${join(__dirname, './prepareData.ts')}`);
 		test('code addOrUpdate 0 code0.json');
 		test('node add 0 node.w9.json');

@@ -1,7 +1,7 @@
 import { Command } from 'commander';
 import { join } from 'path';
 import * as fs from 'fs';
-import { Config, files, ABIs } from './common';
+import { Config, files, ABIs, dir } from './common';
 import { JsonRpcProvider, Wallet } from 'ethers';
 import { addWalletCmd } from './wallet';
 import { addCodeCmd } from './code';
@@ -23,7 +23,7 @@ function abort(msg: string) {
 
 // Load config file
 const loadConfig = () => {
-	const fConfig = join(__dirname, files.config);
+	const fConfig = join(dir, files.config);
 	try {
 		return JSON.parse(fs.readFileSync(fConfig, 'utf-8'));
 	} catch (err: any) {
@@ -54,7 +54,7 @@ keys.forEach((key) => {
 
 // Load contract ABIs
 const loadAbi = () => {
-	const fAbi = join(__dirname, files.abi);
+	const fAbi = join(dir, files.abi);
 	try {
 		return JSON.parse(fs.readFileSync(fAbi, 'utf-8'));
 	} catch (err: any) {
@@ -65,7 +65,7 @@ const abi: ABIs = loadAbi();
 
 // Load wallets
 const loadWallets = () => {
-	const fPk = join(__dirname, 'wallet', files.pk);
+	const fPk = join(dir, files.pk);
 	let pks: string[] = [];
 	try {
 		pks = JSON.parse(fs.readFileSync(fPk, 'utf-8'));
@@ -107,8 +107,6 @@ const wallets = loadWallets();
  * 			teenet 	block	--latest, --number <num>	// get block info	
  */
 const program = new Command();
-
-program.version(cfg.ver);
 
 try {
 	addWalletCmd(program, wallets);

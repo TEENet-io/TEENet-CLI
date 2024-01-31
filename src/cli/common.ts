@@ -4,8 +4,9 @@ import { isBytes32, isNumbericString } from "../libs/common";
 import { join } from 'path';
 import { readFileSync } from 'fs';
 
+export const dir = join(__dirname, '../../cmd/');
+
 export interface Config {
-	ver: string;
 	url: string;
 	deployed: {
 		TaskMgr: string;
@@ -15,12 +16,10 @@ export interface Config {
 }
 
 export const files = {
-	config: './config.teenet.json',
-	task: './task.teenet.json',
-	node: './node.teenet.json',
-	code: './code.teenet.json',
-	abi: './abi.teenet.json',
-	pk: './pk.teenet.json'
+	config: 'config.teenet.json',
+	task: 'task.teenet.json',
+	abi: 'abi.teenet.json',
+	pk: 'pk.teenet.json'
 }
 
 export type ABIs = {
@@ -124,7 +123,7 @@ export function isNodePk(pk: string): boolean {
 }
 
 export function loadDataFromFile(file: string) {
-	const _file = join(__dirname, 'data', file);
+	const _file = join(dir, 'data', file);
 
 	let data: any;
 	try {

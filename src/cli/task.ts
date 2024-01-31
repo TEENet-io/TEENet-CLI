@@ -5,7 +5,7 @@ import { TaskManager } from '../libs/task';
 import { Task, Params } from '../libs/types';
 import { readFileSync, writeFileSync, existsSync } from 'fs';
 import { LoggerFactory } from './logger';
-import { getWallet, printTask, printTaskList, isTaskId, isNodePk, Config, ABIs, files, loadDataFromFile } from './common';
+import { dir, getWallet, printTask, printTaskList, isTaskId, isNodePk, Config, ABIs, files, loadDataFromFile } from './common';
 const JSONbig = require('json-bigint');
 
 const logger = LoggerFactory.getInstance();
@@ -25,7 +25,7 @@ type RewardReq = {
 }
 
 // Create non-existing file
-const file = join(__dirname, 'data', files.task)
+const file = join(dir, 'data', files.task)
 if (!existsSync(file)) {
 	writeFileSync(file, JSON.stringify({ tasks: {}, nodeLists: {} }, null, 2));
 }
@@ -196,7 +196,7 @@ export function addTaskCmd(program: Command, cfg: Config, provider: Provider, ab
 }
 
 function loadTaskData(): Data | Error {
-	const file = join(__dirname, 'data', files.task);
+	const file = join(process.cwd(), 'data', files.task);
 
 	let data: Data;
 	try {
@@ -208,7 +208,7 @@ function loadTaskData(): Data | Error {
 }
 
 function saveTaskInfo(data: Data): Error | null {
-	const file = join(__dirname, 'data', files.task);
+	const file = join(process.cwd(), 'data', files.task);
 	try {
 		writeFileSync(file, JSONbig.stringify(data, null, 2));
 	} catch (err: any) {
