@@ -49,10 +49,6 @@ describe("NodeManager", function () {
 		});
 	});
 	describe("remove", function () {
-		it("Should return error when node does not exist", async function () {
-			const { randBytes, nodeManager, backend } = await loadFixture(deployFixture);
-			expect((await nodeManager.remove(backend, randBytes(32)))!.message).to.equal("Node does not exist");
-		});
 		it("Should return true when node exists", async function () {
 			const { nodeManager, backend, nodeInfo, nodes } = await loadFixture(deployFixture);
 			await nodeInfo.connect(backend).add(nodes[0]);

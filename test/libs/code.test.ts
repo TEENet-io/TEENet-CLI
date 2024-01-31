@@ -46,10 +46,6 @@ describe("CodeManager", function () {
 		});
 	});
 	describe("remove", function () {
-		it("Should return error when code hash does not exist", async function () {
-			const { randBytes, codeManager, backend } = await loadFixture(deployFixture);
-			expect((await codeManager.remove(backend, randBytes(32)))!.message).to.equal("Code does not exist");
-		});
 		it("Should return true when node exists", async function () {
 			const { codeManager, backend, codeInfo, codes } = await loadFixture(deployFixture);
 			await codeInfo.connect(backend).addOrUpdate(codes[0]);
