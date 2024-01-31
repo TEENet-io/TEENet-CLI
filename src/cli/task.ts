@@ -4,7 +4,7 @@ import { Provider, Wallet } from 'ethers';
 import { TaskManager } from '../libs/task';
 import { Task, Params } from '../libs/types';
 import { readFileSync, writeFileSync, existsSync } from 'fs';
-import { LoggerFactory } from './Logger';
+import { LoggerFactory } from './logger';
 import { getWallet, printTask, printTaskList, isTaskId, isNodePk, Config, ABIs, files, loadDataFromFile } from './common';
 const JSONbig = require('json-bigint');
 

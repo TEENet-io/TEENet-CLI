@@ -1,7 +1,7 @@
 import { Command } from 'commander';
 import { Wallet } from 'ethers';
 import { printAddresses } from './common';
-import { LoggerFactory } from './Logger';
+import { LoggerFactory } from './logger';
 
 const logger = LoggerFactory.getInstance();
 

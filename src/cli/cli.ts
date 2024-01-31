@@ -8,7 +8,7 @@ import { addCodeCmd } from './code';
 import { addNodeCmd } from './node';
 import { isContract } from '../libs/common';
 
-import { LoggerFactory } from './Logger';
+import { LoggerFactory } from './logger';
 import { addTaskCmd } from './task';
 
 const logger = LoggerFactory.getInstance();

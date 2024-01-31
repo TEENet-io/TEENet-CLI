@@ -3,7 +3,7 @@ import { Node, Params } from "../libs/types";
 import { NodeManager } from "../libs/node";
 import { getWallet, isNodePk, printNode, Config, ABIs, loadDataFromFile } from "./common";
 import { Wallet, Provider } from "ethers";
-import { LoggerFactory } from "./Logger";
+import { LoggerFactory } from "./logger";
 
 const logger = LoggerFactory.getInstance();
 export function abort(msg: string) {

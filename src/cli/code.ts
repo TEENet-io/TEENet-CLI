@@ -3,7 +3,7 @@ import { Provider, Signer, Wallet } from 'ethers';
 import { CodeManager } from '../libs/code';
 import { Code, Params } from '../libs/types';
 import { printCode, getWallet, isCodeHash, Config, ABIs, loadDataFromFile } from './common';
-import { LoggerFactory } from './Logger';
+import { LoggerFactory } from './logger';
 
 const logger = LoggerFactory.getInstance();
 export function abort(msg: string) {
