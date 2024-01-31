@@ -1,39 +1,41 @@
 {
-  "name": "teenet",
-  "version": "0.0.0",
-  "description": "A decentralized TEE network",
-  "main": "index.js",
-  "scripts": {
-    "testhh": "yarn hardhat test",
-    "runhh": "yarn hardhat run",
-	"test-contracts": "hardhat test test/contracts/*.test.ts",
-	"test-libs": "hardhat test test/libs/*.test.ts",
-	"test-cli": "mocha --exit --no-timeouts --bail --color --require ts-node/register test/cli/*.test.ts"
-  },
-  "author": "Peter Zhou",
-  "license": "MIT",
-  "dependencies": {
-    "@openzeppelin/contracts": "^5.0.1",
-    "commander": "^11.1.0",
-    "hardhat": "^2.19.4",
-    "ts-node": "^10.9.2",
-    "typescript": "^5.3.3"
-  },
-  "devDependencies": {
-    "@nomicfoundation/hardhat-chai-matchers": "^2.0.4",
-    "@nomicfoundation/hardhat-ethers": "^3.0.5",
-    "@nomicfoundation/hardhat-network-helpers": "^1.0.10",
-    "@nomicfoundation/hardhat-toolbox": "^4.0.0",
-    "@nomicfoundation/hardhat-verify": "^2.0.4",
-    "@typechain/ethers-v6": "^0.5.1",
-    "@typechain/hardhat": "^9.1.0",
-    "@types/chai": "^4.3.11",
-    "@types/mocha": "^10.0.6",
-    "chai": "^4.4.1",
-    "hardhat-gas-reporter": "^1.0.10",
-    "json-bigint": "^1.0.0",
-    "mocha-suppress-logs": "^0.4.1",
-    "solidity-coverage": "^0.8.6",
-    "typechain": "^8.3.2"
-  }
+	"name": "teenet",
+	"version": "0.0.0",
+	"description": "A decentralized TEE network",
+	"main": "./cmd/cli.js",
+	"scripts": {
+		"testhh": "yarn hardhat test",
+		"runhh": "yarn hardhat run",
+		"test-contracts": "hardhat test test/contracts/*.test.ts",
+		"test-libs": "hardhat test test/libs/*.test.ts",
+		"test-cli": "mocha --exit --no-timeouts --bail --color --require ts-node/register test/cli/*.test.ts"
+	},
+	"bin": {
+		"teenet": "./cmd/cli.js"
+	},
+	"author": "Peter Zhou",
+	"license": "MIT",
+	"dependencies": {
+		"@openzeppelin/contracts": "^5.0.1",
+		"commander": "^11.1.0",
+		"hardhat": "^2.19.4",
+		"ts-node": "^10.9.2",
+		"typescript": "^5.3.3"
+	},
+	"devDependencies": {
+		"@nomicfoundation/hardhat-chai-matchers": "^2.0.4",
+		"@nomicfoundation/hardhat-ethers": "^3.0.5",
+		"@nomicfoundation/hardhat-network-helpers": "^1.0.10",
+		"@nomicfoundation/hardhat-toolbox": "^4.0.0",
+		"@nomicfoundation/hardhat-verify": "^2.0.4",
+		"@typechain/ethers-v6": "^0.5.1",
+		"@typechain/hardhat": "^9.1.0",
+		"@types/chai": "^4.3.11",
+		"@types/mocha": "^10.0.6",
+		"chai": "^4.4.1",
+		"hardhat-gas-reporter": "^1.0.10",
+		"json-bigint": "^1.0.0",
+		"solidity-coverage": "^0.8.6",
+		"typechain": "^8.3.2"
+	}
 }
