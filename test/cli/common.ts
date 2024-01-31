@@ -1,5 +1,5 @@
 import { join } from 'path';
-import { readFileSync } from 'fs';
+import { readFileSync, writeFileSync } from 'fs';
 import { assert } from 'chai';
 import { Wallet } from 'ethers';
 import { Code } from '../../src/libs/types';
@@ -42,6 +42,15 @@ export const loadFile = (file: string) => {
 	try {
 		const _file = join(dataDir, file);
 		return JSON.parse(readFileSync(_file, 'utf-8'));
+	} catch (err: any) {
+		assert.fail(err.message);
+	}
+}
+
+export const writeFile = (file: string, data: any) => {
+	try {
+		const _file = join(dataDir, file);
+		return writeFileSync(_file, JSON.stringify(data, null, 2));
 	} catch (err: any) {
 		assert.fail(err.message);
 	}

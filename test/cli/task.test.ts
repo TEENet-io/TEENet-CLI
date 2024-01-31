@@ -1,10 +1,9 @@
 import { execSync } from 'child_process';
 import { join } from 'path';
 import { JsonRpcProvider } from 'ethers';
-import { loadFile, dataDir } from '../cli/common';
+import { loadFile, writeFile } from '../cli/common';
 import { TaskManagerErr } from '../../src/cli/task';
 import { Task } from '../../src/libs/types';
-import { writeFileSync } from 'fs';
 import { expect } from 'chai';
 import { randBytes } from '../../src/libs/common';
 import { printTaskList, files } from '../../src/cli/common';
@@ -56,7 +55,7 @@ describe('CLI Task', function () {
 		it('should fail with invalid task id in file', function () {
 			const file = 'reward.invalid.json';
 			const rewardReq = { id: randBytes(30), pks: [] };
-			writeFileSync(join(dataDir, file), JSON.stringify(rewardReq, null, 2));
+			writeFile(file, rewardReq);
 			const actual = test(`task reward 0 ${file}`);
 			const expected = TaskManagerErr.InvalidId(rewardReq.id).message;
 			expect(actual).to.include(expected);
@@ -64,7 +63,7 @@ describe('CLI Task', function () {
 		it('should fail with invalid pk in file', function () {
 			const file = 'reward.invalid.json';
 			const rewardReq = { id: randBytes(32), pks: [randBytes(30)] };
-			writeFileSync(join(dataDir, file), JSON.stringify(rewardReq, null, 2));
+			writeFile(file, rewardReq);
 			const actual = test(`task reward 0 ${file}`);
 			const expected = TaskManagerErr.InvalidPk(rewardReq.pks[0]).message;
 			expect(actual).to.include(expected);
@@ -88,7 +87,7 @@ describe('CLI Task', function () {
 	});
 	describe('rundown', function () {
 		test('task update');
-		
+
 		it('should get empty task list', function () {
 			const actual = test('task list');
 			const expected = TaskManagerErr.EmptyTaskList().message;
@@ -135,7 +134,7 @@ describe('CLI Task', function () {
 			await provider.send('evm_increaseTime', [24 * 60 * 60 * Number(task.numDays)]);
 			const req = { id: task.id, pks: [node.pk] };
 			const file = 'rewardReq.json';
-			writeFileSync(join(dataDir, file), JSON.stringify(req, null, 2));
+			writeFile(file, req);
 			const actual = test(`task reward 0 ${file}`);
 			expect(actual).to.include(`Reward distributed\nid=${task.id}\npks=${JSON.stringify([node.pk])}`);
 		});

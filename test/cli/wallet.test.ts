@@ -2,10 +2,11 @@ import { expect } from 'chai';
 import { wallets } from './common';
 import { printAddresses } from '../../src/cli/common';
 import { execSync } from 'child_process';
+import { join } from 'path';
 
 export function test(cmd: string): string {
 	try {
-		return execSync('npx ts-node ../../src/cli/cli.ts ' + cmd).toString();
+		return execSync(`npx ts-node ${join(__dirname, '../../src/cli/cli.ts')} ${cmd}`).toString();
 	} catch (err: any) {
 		return err.output[1].toString();
 	}

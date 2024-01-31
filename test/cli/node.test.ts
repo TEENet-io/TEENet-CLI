@@ -1,12 +1,11 @@
 import { expect } from 'chai';
-import { loadFile, dataDir } from './common';
+import { loadFile, writeFile } from './common';
 import { printNode } from '../../src/cli/common';
 import { randBytes } from '../../src/libs/common';
 import { NodeInfoErr } from '../../src/cli/node';
 import { Node } from '../../src/libs/types';
 import { execSync } from 'child_process';
 import { join } from 'path';
-import { writeFileSync } from 'fs';
 
 export function test(cmd: string): string {
 	try {
@@ -17,6 +16,10 @@ export function test(cmd: string): string {
 }
 
 describe('CLI Node', function () {
+	before(function () {
+		execSync(`npx ts-node ${join(__dirname, './deployOnHardhat.ts')}`);
+		execSync(`npx ts-node ${join(__dirname, './prepareData.ts')}`);
+	});
 	describe('add', function () {
 		it('should fail with non-existing file', function () {
 			const actual = test(`node add 0 non-existing-node.json`);
@@ -28,7 +31,7 @@ describe('CLI Node', function () {
 			const node = loadFile('node.w9.json') as Node;
 			node.pk = pk;
 			const file = 'node.invalid.json';
-			writeFileSync(join(dataDir, file), JSON.stringify(node));
+			writeFile(file, node);
 			const actual = test(`node add 0 ${file}`);
 			const expected = NodeInfoErr.InvalidPk(pk).message;
 			expect(actual).to.include(expected);

@@ -1,7 +1,6 @@
 import { expect } from 'chai';
-import { codes, dataDir } from './common';
+import { loadFile, writeFile } from './common';
 import { printCode } from '../../src/cli/common';
-import { readFileSync, writeFileSync } from 'fs';
 import { join } from 'path';
 import { randBytes } from '../../src/libs/common';
 import { CodeInfoErr } from '../../src/cli/code'
@@ -16,6 +15,12 @@ export function test(cmd: string): string {
 }
 
 describe('CLI Code', function () {
+	let code: any;
+	before(function () {
+		execSync(`npx ts-node ${join(__dirname, './deployOnHardhat.ts')}`);
+		execSync(`npx ts-node ${join(__dirname, './prepareData.ts')}`);
+		code = loadFile('code0.json')
+	});
 	describe('get', function () {
 		it('should fail with invalid hash', function () {
 			const hash = randBytes(30);
@@ -31,10 +36,10 @@ describe('CLI Code', function () {
 		});
 		it('should get correct code info', function () {
 			test('code addOrUpdate 0 code0.json');
-			const actual = test(`code get ${codes[0].hash}`);
-			const expected = printCode(codes[0]);
+			const actual = test(`code get ${code.hash}`);
+			const expected = printCode(code);
 			expect(actual).to.include(expected);
-			test('code remove 0 ' + codes[0].hash);
+			test('code remove 0 ' + code.hash);
 		});
 	});
 	describe('addOrUpdate', function () {
@@ -45,27 +50,27 @@ describe('CLI Code', function () {
 		});
 		it('should fail with invalid hash in file', function () {
 			const hash = randBytes(30);
-			const code = {...codes[0]};
-			code.hash = hash;
+			const c = {...code};
+			c.hash = hash;
 			const file = 'code.invalid.json';
-			writeFileSync(join(dataDir, file), JSON.stringify(code));
+			writeFile(file, c);
 			const actual = test(`code addOrUpdate 0 ${file}`);
 			const expected = CodeInfoErr.InvalidHash(hash).message;
 			expect(actual).to.include(expected);
 		});
 		it('should add code info', function () {
 			const actual = test('code addOrUpdate 0 code0.json');
-			const expected = printCode(codes[0]);
-			expect(actual).to.include(expected);
-			test('code remove 0 ' + codes[0].hash);
-		});
-		it('should update code info', function () {
-			test('code addOrUpdate 0 code0.json');
-			const code = JSON.parse(readFileSync(join(dataDir, 'code0.update.json'), 'utf-8'));
-			const actual = test('code addOrUpdate 0 code0.update.json');
 			const expected = printCode(code);
 			expect(actual).to.include(expected);
 			test('code remove 0 ' + code.hash);
+		});
+		it('should update code info', function () {
+			test('code addOrUpdate 0 code0.json');
+			const c = loadFile('code0.update.json');
+			const actual = test('code addOrUpdate 0 code0.update.json');
+			const expected = printCode(c);
+			expect(actual).to.include(expected);
+			test('code remove 0 ' + c.hash);
 		});
 	});
 	describe('remove', function () {
@@ -83,8 +88,8 @@ describe('CLI Code', function () {
 		});
 		it('should remove code info', function () {
 			test('code addOrUpdate 0 code0.json');
-			const actual = test(`code remove 0 ${codes[0].hash}`);
-			const expected = codes[0].hash;
+			const actual = test(`code remove 0 ${code.hash}`);
+			const expected = code.hash;
 			expect(actual).to.include(expected);
 		});
 	});
