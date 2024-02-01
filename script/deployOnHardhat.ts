@@ -1,21 +1,24 @@
-import { ethers } from "ethers";
+import { JsonRpcProvider, Signer, Wallet, ContractFactory } from "ethers";
 import { writeFileSync, mkdirSync, existsSync } from "fs";
 import { join } from "path";
 import { artifacts } from "hardhat";
 import { Config, files, dir } from "../src/cli/common";
+import { Code, Node, Task } from "../src/libs/types";
+import { randBytes } from "../src/libs/common";
+const JSONbig = require('json-bigint');
 
 async function main() {
 	const dataDir = join(dir, 'data');
 	if (!existsSync(dataDir)) {
 		mkdirSync(dataDir);
 	}
-	
-	const provider = new ethers.JsonRpcProvider("http://localhost:8545");
+
+	const provider = new JsonRpcProvider("http://localhost:8545");
 	const backend = await provider.getSigner(0);
 
-	const deployContract = async function (contractName: string, signer: ethers.Signer, args: any[]) {
+	const deployContract = async function (contractName: string, signer: Signer, args: any[]) {
 		const artifact = await artifacts.readArtifact(contractName);
-		const factory = new ethers.ContractFactory(artifact.abi, artifact.bytecode, signer);
+		const factory = new ContractFactory(artifact.abi, artifact.bytecode, signer);
 		const base = await factory.deploy(...args);
 		await base.waitForDeployment();
 		const contractAddress = await base.getAddress();
@@ -51,13 +54,49 @@ async function main() {
 	];
 	writeFileSync(join(dir, files.pk), JSON.stringify(pks, null, 2));
 
-	const contractNames = [ 'CodeInfo', 'NodeInfo', 'TaskMgr' ];
+	const contractNames = ['CodeInfo', 'NodeInfo', 'TaskMgr'];
 	const abi: Record<string, any[]> = {};
 	for (const contractName of contractNames) {
 		const artifact = await artifacts.readArtifact(contractName);
 		abi[contractName] = artifact.abi;
 	};
 	writeFileSync(join(dir, files.abi), JSON.stringify(abi, null, 2));
+
+	const genCode = (): Code => {
+		const hash = randBytes(32);
+		return {
+			hash: hash,
+			url: `https://${hash}.network`
+		}
+	}
+	const code = genCode();
+	writeFileSync(join(dir, 'data', 'code.sample.json'), JSON.stringify(code, null, 2));
+
+	const genNode = (owner: string): Node => {
+		return {
+			pk: randBytes(32),
+			owner: owner,
+			teeType: randBytes(16),
+			teeVer: randBytes(16),
+			attestation: randBytes(256)
+		}
+	}
+	const node = genNode(pks[0]);
+	writeFileSync(join(dir, 'data', 'node.sample.json'), JSON.stringify(node, null, 2));
+
+	const genTask = (owner: string, numDays: number, maxNodeNum: number, codeHash: string): Task => {
+		return {
+			id: randBytes(32),
+			owner: owner,
+			rewardPerNode: BigInt(Math.ceil(Math.random() * 100)),
+			start: BigInt(0),
+			numDays: BigInt(numDays),
+			maxNodeNum: BigInt(maxNodeNum),
+			codeHash: codeHash
+		}
+	}
+	const task = genTask((new Wallet(pks[0])).address, 1, 1, code.hash);
+	writeFileSync(join(dir, 'data', 'task.sample.json'), JSONbig.stringify(task, null, 2));
 }
 
 main().catch((error) => {
