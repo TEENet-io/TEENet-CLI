@@ -1,6 +1,8 @@
 # TEENet
 TEENet is a Decentralized Physical Infrastructure Network (DePIN) formed by machines that are equipped with Trusted Execution Environment (TEE). It provides an effective and efficient solution to crowdsourcing TEE computing power for computations that require security, integrity and confidentiality. In the context of Web3, these computations could be cross-chain transaction validation, Layer2 transaction validation or staking validation, etc.  
 
+## CLI Installation
+
 Download source files
 ```bash
 git clone git@github.com:zzGHzz/TEENet.git
@@ -29,7 +31,7 @@ to deploy smart contracts and generate files including:
 * `./cmd/data/node.sample.json`
 * `./cmd/data/task.sample.json`
 
-Test CLI 
+### Try CLI
 ```bash
 teenet wallet list
 ```
@@ -49,12 +51,24 @@ to list the first ten wallets provided by the Hardhat network
 ```bash
 teenet code addOrUpdate 0 code.sample.json
 ```
-to add a new code info record
-```bash
-Added/updated code info
-Hash: 0xacd832254b43941a2f76394ec9b59e4be2f5a0e4724f98e91ce18c8047dff39b
-Url: https://0xacd832254b43941a2f76394ec9b59e4be2f5a0e4724f98e91ce18c8047dff39b.network
-```
+to add a new code info record.
 ```bash
 teenet node add 0 node.sample.json
 ```
+to add a new node info record.
+```bash
+teenet task add 0 task.sample.json
+```
+to add a new task.
+```bash
+teenet task join 0 0xfffa542f2913ced66b030c0f0dc3a2ecc6836f1e5638a2ffb307ab5459276efa 0xb6f2e00708d863973cc57130a8eabb7a71cf6be657ac7be63744a8a4445ad90b
+```
+to join a new task.
+```bash
+teenet task update && teenet task list 
+```
+to get the task list.
+```bash
+teenet task get 0xfffa542f2913ced66b030c0f0dc3a2ecc6836f1e5638a2ffb307ab5459276efa
+```
+to get the task detail info.
