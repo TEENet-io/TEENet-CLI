@@ -81,7 +81,7 @@ async function main() {
 			attestation: randBytes(256)
 		}
 	}
-	const node = genNode(pks[0]);
+	const node = genNode((new Wallet(pks[0])).address);
 	writeFileSync(join(dir, 'data', 'node.sample.json'), JSON.stringify(node, null, 2));
 
 	const genTask = (owner: string, numDays: number, maxNodeNum: number, codeHash: string): Task => {
