@@ -196,7 +196,7 @@ export function addTaskCmd(program: Command, cfg: Config, provider: Provider, ab
 }
 
 function loadTaskData(): Data | Error {
-	const file = join(process.cwd(), 'data', files.task);
+	const file = join(dir, 'data', files.task);
 
 	let data: Data;
 	try {
@@ -208,7 +208,7 @@ function loadTaskData(): Data | Error {
 }
 
 function saveTaskInfo(data: Data): Error | null {
-	const file = join(process.cwd(), 'data', files.task);
+	const file = join(dir, 'data', files.task);
 	try {
 		writeFileSync(file, JSONbig.stringify(data, null, 2));
 	} catch (err: any) {
