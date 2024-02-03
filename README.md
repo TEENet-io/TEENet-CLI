@@ -72,3 +72,9 @@ to get the task list.
 teenet task get 0xfffa542f2913ced66b030c0f0dc3a2ecc6836f1e5638a2ffb307ab5459276efa
 ```
 to get the task detail info.
+
+### Try REPL
+Go to `TEENet` folder and run
+```bash
+node ./cmd/repl.js
+```
