@@ -5,7 +5,7 @@ import { LoggerFactory } from './logger';
 
 const logger = LoggerFactory.getInstance();
 
-export function addWalletCmd(program: Command, wallets: Record<string, Wallet>) {
+export function addWalletCmd(program: Command, wallets: Record<string, Wallet>): Command {
 	const walletCmd = program
 		.command('wallet')
 		.description('Wallet related commands');
@@ -17,4 +17,6 @@ export function addWalletCmd(program: Command, wallets: Record<string, Wallet>) 
 			const addrs = Object.keys(wallets);
 			logger.log(printAddresses(addrs));
 		});
+
+	return walletCmd;
 }

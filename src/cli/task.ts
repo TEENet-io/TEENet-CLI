@@ -9,10 +9,6 @@ import { dir, getWallet, printTask, printTaskList, isTaskId, isNodePk, Config, A
 const JSONbig = require('json-bigint');
 
 const logger = LoggerFactory.getInstance();
-export function abort(msg: string) {
-	logger.log('Aborted: ' + msg || 'Unknown error');
-	process.exit(1);
-}
 
 type Data = {
 	tasks: Record<string, Task>;
@@ -51,7 +47,13 @@ export class TaskManagerErr {
  * 							reward <addrOrIdx> <file>			// distribute reward
  */
 
-export function addTaskCmd(program: Command, cfg: Config, provider: Provider, abi: ABIs, wallets: Record<string, Wallet>) {
+export function addTaskCmd(
+	program: Command, 
+	cfg: Config, 
+	provider: Provider, 
+	abi: ABIs, 
+	wallets: Record<string, Wallet>
+): Command {
 	const taskCmd = program
 		.command('task')
 		.description('Commands that handle task info');
@@ -60,14 +62,16 @@ export function addTaskCmd(program: Command, cfg: Config, provider: Provider, ab
 		.command('update')
 		.description('Update task info')
 		.action(() => {
-			updateTaskData({ provider, addr: cfg.deployed.TaskMgr, abi: abi.TaskMgr });
+			updateTaskData({ provider, addr: cfg.deployed.TaskMgr, abi: abi.TaskMgr })
+				.catch((err) => { logger.err(err.message); });
 		});
 
 	taskCmd
 		.command('list')
 		.description('List task info including id, reward, expiring data and node participation info')
 		.action(() => {
-			listTasks({ provider, addr: cfg.deployed.TaskMgr, abi: abi.TaskMgr });
+			listTasks({ provider, addr: cfg.deployed.TaskMgr, abi: abi.TaskMgr })
+				.catch((err) => { logger.err(err.message); });
 		});
 
 	taskCmd
@@ -75,10 +79,12 @@ export function addTaskCmd(program: Command, cfg: Config, provider: Provider, ab
 		.description('Get details of a task')
 		.action((id) => {
 			if (!isTaskId(id)) {
-				abort(TaskManagerErr.InvalidId(id).message);
+				logger.err(TaskManagerErr.InvalidId(id).message);
+				return;
 			}
 
-			getTask({ provider, addr: cfg.deployed.TaskMgr, abi: abi.TaskMgr }, id);
+			getTask({ provider, addr: cfg.deployed.TaskMgr, abi: abi.TaskMgr }, id)
+				.catch((err) => { logger.err(err.message); });
 		});
 
 	taskCmd
@@ -87,18 +93,21 @@ export function addTaskCmd(program: Command, cfg: Config, provider: Provider, ab
 		.action((addrOrIdx, file) => {
 			const walletOrErr = getWallet(addrOrIdx, wallets);
 			if (walletOrErr instanceof Error) {
-				abort(walletOrErr.message);
+				logger.err(walletOrErr.message);
+				return;
 			}
 
 			const taskOrErr = loadDataFromFile(file);
 			if (taskOrErr instanceof Error) {
-				abort(taskOrErr.message);
+				logger.err(taskOrErr.message);
+				return;
 			}
 
 			// TODO:
 			// May add logic to check the validity of loaded task
 
-			addTask({ provider, addr: cfg.deployed.TaskMgr, abi: abi.TaskMgr }, walletOrErr as Wallet, taskOrErr as Task);
+			addTask({ provider, addr: cfg.deployed.TaskMgr, abi: abi.TaskMgr }, walletOrErr, taskOrErr)
+				.catch((err) => { logger.err(err.message); });
 		});
 	taskCmd
 		.command('join <addrOrIdx> <id> <pk>')
@@ -106,19 +115,22 @@ export function addTaskCmd(program: Command, cfg: Config, provider: Provider, ab
 		.action((addrOrIdx, id, pk) => {
 			const walletOrErr = getWallet(addrOrIdx, wallets);
 			if (walletOrErr instanceof Error) {
-				abort(walletOrErr.message);
+				logger.err(walletOrErr.message);
 				return;
 			}
 
 			if (!isTaskId(id)) {
-				abort(TaskManagerErr.InvalidId(id).message);
+				logger.err(TaskManagerErr.InvalidId(id).message);
+				return;
 			}
 
 			if (!isNodePk(pk)) {
-				abort(TaskManagerErr.InvalidPk(pk).message);
+				logger.err(TaskManagerErr.InvalidPk(pk).message);
+				return;
 			}
 
-			joinTask({ provider, addr: cfg.deployed.TaskMgr, abi: abi.TaskMgr }, walletOrErr, id, pk);
+			joinTask({ provider, addr: cfg.deployed.TaskMgr, abi: abi.TaskMgr }, walletOrErr, id, pk)
+				.catch((err) => { logger.err(err.message); });
 		});
 	taskCmd
 		.command('balance <addrOrIdx>')
@@ -126,7 +138,7 @@ export function addTaskCmd(program: Command, cfg: Config, provider: Provider, ab
 		.action((addrOrIdx) => {
 			const walletOrErr = getWallet(addrOrIdx, wallets);
 			if (walletOrErr instanceof Error) {
-				abort(walletOrErr.message);
+				logger.err(walletOrErr.message);
 				return;
 			}
 
@@ -136,7 +148,7 @@ export function addTaskCmd(program: Command, cfg: Config, provider: Provider, ab
 				abi: abi.TaskMgr
 			}).balance(walletOrErr.address).then((balanceOrErr: bigint | Error) => {
 				if (balanceOrErr instanceof Error) {
-					abort(balanceOrErr.message);
+					logger.err(balanceOrErr.message);
 					return;
 				}
 				logger.log(`Withdraw balance\nAddress: ${walletOrErr.address}\nBalance: ${Number(balanceOrErr)}`);
@@ -148,7 +160,7 @@ export function addTaskCmd(program: Command, cfg: Config, provider: Provider, ab
 		.action((addrOrIdx) => {
 			const walletOrErr = getWallet(addrOrIdx, wallets);
 			if (walletOrErr instanceof Error) {
-				abort(walletOrErr.message);
+				logger.err(walletOrErr.message);
 				return;
 			}
 			new TaskManager({
@@ -157,7 +169,7 @@ export function addTaskCmd(program: Command, cfg: Config, provider: Provider, ab
 				abi: abi.TaskMgr
 			}).withdraw(walletOrErr).then((errOrNull) => {
 				if (errOrNull instanceof Error) {
-					abort(errOrNull.message);
+					logger.err(errOrNull.message);
 				}
 				logger.log(`Balance withdrawn\nAddress: ${walletOrErr.address}`);
 			});
@@ -168,31 +180,37 @@ export function addTaskCmd(program: Command, cfg: Config, provider: Provider, ab
 		.action((addrOrIdx, file) => {
 			const walletOrErr = getWallet(addrOrIdx, wallets);
 			if (walletOrErr instanceof Error) {
-				abort(walletOrErr.message);
+				logger.err(walletOrErr.message);
 				return;
 			}
 
 			const reqOrErr = loadDataFromFile(file);
 			if (reqOrErr instanceof Error) {
-				abort(reqOrErr.message);
+				logger.err(reqOrErr.message);
 				return;
 			}
 			const req = reqOrErr as RewardReq;
 
 			if (!isTaskId(req.id)) {
-				abort(TaskManagerErr.InvalidId(req.id).message);
+				logger.err(TaskManagerErr.InvalidId(req.id).message);
+				return;
 			}
 			if (req.pks.length === 0) {
-				abort(TaskManagerErr.EmptyNodeList().message);
+				logger.err(TaskManagerErr.EmptyNodeList().message);
+				return;
 			}
-			req.pks.forEach((pk) => {
+			for (const pk of req.pks) {
 				if (!isNodePk(pk)) {
-					abort(TaskManagerErr.InvalidPk(pk).message);
+					logger.err(TaskManagerErr.InvalidPk(pk).message);
+					return;
 				}
-			});
+			};
 
-			rewardTask({ provider, addr: cfg.deployed.TaskMgr, abi: abi.TaskMgr }, walletOrErr, req.id, req.pks);
+			rewardTask({ provider, addr: cfg.deployed.TaskMgr, abi: abi.TaskMgr }, walletOrErr, req.id, req.pks)
+				.catch((err) => { logger.err(err.message); });
 		});
+
+	return taskCmd;
 }
 
 function loadTaskData(): Data | Error {
@@ -221,22 +239,20 @@ async function updateTaskData(param: Params) {
 	const taskManager = new TaskManager(param);
 	const ids = await taskManager.getTaskIds();
 	if (ids instanceof Error) {
-		abort(ids.message);
+		throw ids;
 	}
 	const tasks: Record<string, Task> = {};
 	const nodeLists: Record<string, string[]> = {};
 
-	for (const id of ids as string[]) {
+	for (const id of ids) {
 		const tasksOrErr = await taskManager.getTask(id);
 		if (tasksOrErr instanceof Error) {
-			abort(tasksOrErr.message);
-			return;
+			throw tasksOrErr;
 		}
 		tasks[tasksOrErr.id] = tasksOrErr;
 		const listOrErr = await taskManager.getNodeList(id);
 		if (listOrErr instanceof Error) {
-			abort(listOrErr.message);
-			return;
+			throw listOrErr;
 		}
 		if (listOrErr) {
 			nodeLists[id] = listOrErr;
@@ -245,7 +261,7 @@ async function updateTaskData(param: Params) {
 
 	const errOrNull = saveTaskInfo({ tasks, nodeLists });
 	if (errOrNull instanceof Error) {
-		abort(errOrNull.message);
+		throw errOrNull;
 	}
 
 	logger.log('Updated local task data');
@@ -255,13 +271,13 @@ async function addTask(param: Params, wallet: Wallet, task: Task) {
 	const taskManager = new TaskManager(param);
 	const errOrNull = await taskManager.addTask(wallet, task);
 	if (errOrNull instanceof Error) {
-		abort(errOrNull.message);
+		throw errOrNull;
 	}
 	logger.log('Task added');
 
 	const taskOrErr = await taskManager.getTask(task.id);
 	if (taskOrErr instanceof Error) {
-		abort(taskOrErr.message);
+		logger.log(taskOrErr.message);
 	}
 	logger.log(printTask(task));
 }
@@ -270,7 +286,7 @@ async function joinTask(param: Params, wallet: Wallet, id: string, pk: string) {
 	const taskManager = new TaskManager(param);
 	const errOrNull = await taskManager.joinTask(wallet, id, pk);
 	if (errOrNull instanceof Error) {
-		abort(errOrNull.message);
+		throw errOrNull;
 	}
 
 	logger.log(`Joined task\nid=${id}\npk=${pk}`);
@@ -280,7 +296,7 @@ async function rewardTask(param: Params, wallet: Wallet, id: string, pks: string
 	const taskManager = new TaskManager(param);
 	const errOrNull = await taskManager.reward(wallet, id, pks);
 	if (errOrNull instanceof Error) {
-		abort(errOrNull.message);
+		throw errOrNull;
 	}
 	logger.log(`Reward distributed\nid=${id}\npks=${JSON.stringify(pks)}`);
 }
@@ -290,33 +306,30 @@ async function getTask(params: Params, id: string) {
 	if (await taskManager.taskExists(id)) {
 		const taskOrErr = await taskManager.getTask(id);
 		if (taskOrErr instanceof Error) {
-			abort(taskOrErr.message);
-			return;
+			throw taskOrErr;
 		}
 
 		const listOrErr = await taskManager.getNodeList(id);
 		if (listOrErr instanceof Error) {
-			abort(listOrErr.message);
-			return;
+			throw listOrErr.message;
 		}
 
 		logger.log(printTask(taskOrErr));
 		logger.log('Node list: ' + JSON.stringify(listOrErr, null, 2));
 	} else {
-		abort(TaskManagerErr.TaskNotFound(id).message);
+		throw TaskManagerErr.TaskNotFound(id);
 	}
 }
 
 async function listTasks(params: Params) {
 	const dataOrErr = loadTaskData();
 	if (dataOrErr instanceof Error) {
-		abort(dataOrErr.message);
-		return;
+		throw dataOrErr;
 	}
 
 	const output = printTaskList(dataOrErr.tasks, dataOrErr.nodeLists);
 	if (output.length === 0) {
-		abort(TaskManagerErr.EmptyTaskList().message);
+		throw TaskManagerErr.EmptyTaskList();
 	} else {
 		logger.log(output);
 	}

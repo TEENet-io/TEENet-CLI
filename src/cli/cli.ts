@@ -15,9 +15,12 @@ const logger = LoggerFactory.getInstance();
 logger.on('log', (msg) => {
 	console.log(msg);
 });
+logger.on('err', (msg) => {
+	console.log(msg);
+});
 
 function abort(msg: string) {
-	logger.log(msg);
+	logger.log(msg || 'Unknown error');
 	process.exit(1);
 }
 
@@ -106,15 +109,15 @@ const wallets = loadWallets();
  * 			
  * 			teenet 	block	--latest, --number <num>	// get block info	
  */
-const program = new Command();
+export function genProgram(): Command[] {
+	const programs: Command[] = [];
 
-try {
-	addWalletCmd(program, wallets);
-	addCodeCmd(program, cfg, provider, abi, wallets);
-	addNodeCmd(program, cfg, provider, abi, wallets);
-	addTaskCmd(program, cfg, provider, abi, wallets);
-} catch (err: any) {
-	abort(err.message || 'Unknown error');
+	const program = new Command();
+	programs.push(program);
+	programs.push(addWalletCmd(program, wallets));
+	programs.push(addCodeCmd(program, cfg, provider, abi, wallets));
+	programs.push(addNodeCmd(program, cfg, provider, abi, wallets));
+	programs.push(addTaskCmd(program, cfg, provider, abi, wallets));
+
+	return programs;
 }
-
-program.parse(process.argv);

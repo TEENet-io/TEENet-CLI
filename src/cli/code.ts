@@ -6,10 +6,6 @@ import { printCode, getWallet, isCodeHash, Config, ABIs, loadDataFromFile } from
 import { LoggerFactory } from './logger';
 
 const logger = LoggerFactory.getInstance();
-export function abort(msg: string) {
-	logger.log(msg);
-	process.exit(1);
-}
 
 export class CodeInfoErr {
 	public static readonly NotFound = (hash: string) => new Error(`Code info not found\nhash=${hash}`);
@@ -22,7 +18,13 @@ export class CodeInfoErr {
  * 							remove <addrOrIdx> <hash>				// remove code info
  * 							send <code>								// send code to backend for verification  
  */
-export function addCodeCmd(program: Command, cfg: Config, provider: Provider, abi: ABIs, wallets: Record<string, Wallet>) {
+export function addCodeCmd(
+	program: Command, 
+	cfg: Config, 
+	provider: Provider, 
+	abi: ABIs, 
+	wallets: Record<string, Wallet>
+): Command {
 	const codeCmd = program
 		.command('code')
 		.description('Commands that handle code info');
@@ -32,7 +34,8 @@ export function addCodeCmd(program: Command, cfg: Config, provider: Provider, ab
 		.description('Get code info by hash')
 		.action((hash) => {
 			if(!isCodeHash(hash)) {
-				abort(CodeInfoErr.InvalidHash(hash).message);
+				logger.err(CodeInfoErr.InvalidHash(hash).message);
+				return;
 			}
 
 			get({
@@ -40,7 +43,7 @@ export function addCodeCmd(program: Command, cfg: Config, provider: Provider, ab
 				addr: cfg.deployed.CodeInfo,
 				abi: abi.CodeInfo
 			}, hash).catch((err) => {
-				abort(err.message || 'Unknown error');
+				logger.err(err.message);
 			});
 		});
 
@@ -50,24 +53,27 @@ export function addCodeCmd(program: Command, cfg: Config, provider: Provider, ab
 		.action((addrOrIdx, file) => {
 			const walletOrErr = getWallet(addrOrIdx, wallets);
 			if (walletOrErr instanceof Error) {
-				abort(walletOrErr.message);
+				logger.err(walletOrErr.message);
+				return;
 			}
 
 			const codeOrErr = loadDataFromFile(file);
 			if(codeOrErr instanceof Error) {
-				abort(codeOrErr.message);
+				logger.err(codeOrErr.message);
+				return;
 			}
 			
 			if(!isCodeHash(codeOrErr.hash)) {
-				abort(CodeInfoErr.InvalidHash(codeOrErr.hash).message);
+				logger.err(CodeInfoErr.InvalidHash(codeOrErr.hash).message);
+				return;
 			}
 
 			addOrUpdate({
 				provider,
 				addr: cfg.deployed.CodeInfo,
 				abi: abi.CodeInfo
-			}, walletOrErr as Wallet, codeOrErr as Code).catch((err) => {
-				abort(err.message || 'Unknown error');
+			}, walletOrErr, codeOrErr).catch((err) => {
+				logger.err(err.message || 'Unknown error');
 			});
 		});
 
@@ -77,19 +83,20 @@ export function addCodeCmd(program: Command, cfg: Config, provider: Provider, ab
 		.action((addrOrIdx, hash) => {
 			const walletOrErr = getWallet(addrOrIdx, wallets);
 			if (walletOrErr instanceof Error) {
-				abort(walletOrErr.message);
+				logger.err(walletOrErr.message);
+				return;
 			}
-
-			const wallet = walletOrErr as Wallet;
 
 			remove({
 				provider,
 				addr: cfg.deployed.CodeInfo,
 				abi: abi.CodeInfo
-			}, wallet, hash).catch((err) => {
-				abort(err.message || 'Unknown error');
+			}, walletOrErr, hash).catch((err) => {
+				logger.err(err.message || 'Unknown error');
 			});;
 		});
+
+	return codeCmd;
 }
 
 async function get(params: Params, hash: string) {

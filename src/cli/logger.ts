@@ -4,6 +4,10 @@ export class Logger extends EventEmitter {
 	public log(msg: string) {
 		this.emit('log', msg);
 	}
+
+	public err(msg: string) {
+		this.emit('err', msg);
+	}
 }
 
 let logger: Logger;

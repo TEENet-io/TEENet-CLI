@@ -6,14 +6,10 @@ import { Wallet, Provider } from "ethers";
 import { LoggerFactory } from "./logger";
 
 const logger = LoggerFactory.getInstance();
-export function abort(msg: string) {
-	logger.log(msg);
-	process.exit(1);
-}
 
 export class NodeInfoErr {
 	public static readonly NotFound = (pk: string) => new Error(`Node info not found\npk=${pk}`);
-	public static readonly InvalidPk = (pk: string) => new Error(`Invalid public key\npk=${pk}`);	
+	public static readonly InvalidPk = (pk: string) => new Error(`Invalid public key\npk=${pk}`);
 }
 
 /**
@@ -28,7 +24,7 @@ export function addNodeCmd(
 	provider: Provider,
 	abi: ABIs,
 	wallets: Record<string, Wallet>
-) {
+): Command {
 	const nodeCmd = program
 		.command('node')
 		.description('Commands that handle TEE node info');
@@ -42,7 +38,7 @@ export function addNodeCmd(
 				addr: cfg.deployed.NodeInfo,
 				abi: abi.NodeInfo
 			}, pk).catch((err) => {
-				abort(err.message || 'Unknown error');
+				logger.err(err.message);
 			});
 		});
 
@@ -52,24 +48,27 @@ export function addNodeCmd(
 		.action((addrOrIdx, file) => {
 			const walletOrErr = getWallet(addrOrIdx, wallets);
 			if (walletOrErr instanceof Error) {
-				abort(walletOrErr.message);
+				logger.err(walletOrErr.message);
+				return;
 			}
 
 			const nodeOrErr = loadDataFromFile(file);
-			if(nodeOrErr instanceof Error) {
-				abort(nodeOrErr.message);
+			if (nodeOrErr instanceof Error) {
+				logger.err(nodeOrErr.message);
+				return;
 			}
 
-			if(!isNodePk(nodeOrErr.pk)) {
-				abort(NodeInfoErr.InvalidPk(nodeOrErr.pk).message);
+			if (!isNodePk(nodeOrErr.pk)) {
+				logger.err(NodeInfoErr.InvalidPk(nodeOrErr.pk).message);
+				return;
 			}
 
 			add({
 				provider,
 				addr: cfg.deployed.NodeInfo,
 				abi: abi.NodeInfo
-			}, walletOrErr as Wallet, nodeOrErr as Node).catch((err) => {
-				abort(err.message || 'Unknown error');
+			}, walletOrErr, nodeOrErr).catch((err) => {
+				logger.err(err.message);
 			});
 		});
 
@@ -79,18 +78,20 @@ export function addNodeCmd(
 		.action((addrOrIdx, pk) => {
 			const walletOrErr = getWallet(addrOrIdx, wallets);
 			if (walletOrErr instanceof Error) {
-				abort(walletOrErr.message);
+				logger.err(walletOrErr.message);
+				return;
 			}
 
-			const wallet = walletOrErr as Wallet;
 			remove({
 				provider,
 				addr: cfg.deployed.NodeInfo,
 				abi: abi.NodeInfo
-			}, wallet, pk).catch((err) => {
-				abort(err.message || 'Unknown error');
+			}, walletOrErr, pk).catch((err) => {
+				logger.err(err.message);
 			});
 		});
+
+	return nodeCmd;
 }
 
 async function get(params: Params, pk: string) {
@@ -121,15 +122,15 @@ async function add(params: Params, wallet: Wallet, node: Node) {
 
 async function remove(params: Params, wallet: Wallet, pk: string) {
 	if (!isNodePk(pk)) {
-		throw NodeInfoErr.InvalidPk(pk);	
+		throw NodeInfoErr.InvalidPk(pk);
 	}
 
 	const nodeManager = new NodeManager(params);
-	
+
 	// Testing the existence of the node pk is necessary since
 	// execute remove on contract with a non-existing node pk
 	// would not generate error.
-	if(!(await nodeManager.nodeExists(pk))) {
+	if (!(await nodeManager.nodeExists(pk))) {
 		throw NodeInfoErr.NotFound(pk);
 	}
 
