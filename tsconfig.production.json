@@ -4,16 +4,21 @@
 		"module": "commonjs",
 		"esModuleInterop": true,
 		"strict": true,
+		"declaration": true,
+		"declarationMap": true,
+		"sourceMap": true,
+
 		"rootDir": "src",
 		"outDir": "dist"
 	},
 	"exclude": [
 		"node_modules",
-		"test/**/*",
-		"artifacts/**/*",
-		"cache/**/*",
-		"typechain-types/**/*",
-		"dist/**/*",
+		"script/",
+		"test/",
+		"artifacts/",
+		"cache/",
+		"typechain-types/",
+		"dist/",
 		"hardhat.config.ts"
 	]
 }
