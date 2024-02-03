@@ -8,9 +8,9 @@ import { expect } from 'chai';
 import { randBytes } from '../../src/libs/common';
 import { printTaskList, files } from '../../src/cli/common';
 
-function test(cmd: string): string {
+export function test(cmd: string): string {
 	try {
-		return execSync(`npx ts-node ${join(__dirname, '../../src/cli/cli.ts')} ${cmd}`).toString();
+		return execSync(`node ${join(__dirname, '../../cmd/cli.js')} ${cmd}`).toString();
 	} catch (err: any) {
 		return err.output[1].toString();
 	}
