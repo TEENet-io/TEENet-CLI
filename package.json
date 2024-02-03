@@ -8,7 +8,8 @@
 		"runhh": "yarn hardhat run",
 		"test-contracts": "hardhat test test/contracts/*.test.ts",
 		"test-libs": "hardhat test test/libs/*.test.ts",
-		"test-cli": "mocha --exit --no-timeouts --bail --color --require ts-node/register test/cli/*.test.ts"
+		"test-cli": "mocha --exit --no-timeouts --bail --color -r ts-node/register -r mocha-suppress-logs test/cli/*.test.ts",
+		"build": "tsc --project tsconfig.production.json"
 	},
 	"bin": {
 		"teenet": "./cmd/cli.js"
@@ -35,6 +36,7 @@
 		"chai": "^4.4.1",
 		"hardhat-gas-reporter": "^1.0.10",
 		"json-bigint": "^1.0.0",
+		"mocha-suppress-logs": "^0.4.1",
 		"solidity-coverage": "^0.8.6",
 		"typechain": "^8.3.2"
 	}
