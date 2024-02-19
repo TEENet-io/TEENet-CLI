@@ -41,6 +41,9 @@ COPY cmd /app/cmd
 COPY src /app/src
 COPY script /app/script 
 
-RUN npx hardhat compile
+RUN <<EOF
+npx hardhat compile
+echo 'alias teenet="node cmd/cli.js"' >> ~/.bashrc
+EOF
 
 ENTRYPOINT [ "/bin/bash" ]
