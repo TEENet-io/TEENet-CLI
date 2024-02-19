@@ -13,7 +13,9 @@ async function main() {
 		mkdirSync(dataDir);
 	}
 
-	const provider = new JsonRpcProvider("http://localhost:8545");
+	const host = "http://127.0.0.1:8545";
+
+	const provider = new JsonRpcProvider(host);
 	const backend = await provider.getSigner(0);
 
 	const deployContract = async function (contractName: string, signer: Signer, args: any[]) {
@@ -25,13 +27,15 @@ async function main() {
 		return contractAddress;
 	}
 
+	console.log("Deploying contracts...");
 	const codeInfoAddr = await deployContract("CodeInfo", backend, [backend.address]);
 	const nodeInfoAddr = await deployContract("NodeInfo", backend, [backend.address]);
 	const taskMgrAddr = await deployContract("TaskMgr", backend, [backend.address, nodeInfoAddr, codeInfoAddr]);
 
 	// Output contract address and account
+	console.log("Generating config, abi, pk, and sample data files...");
 	const config: Config = {
-		url: "http://localhost:8545",
+		url: host,
 		deployed: {
 			NodeInfo: nodeInfoAddr,
 			TaskMgr: taskMgrAddr,
