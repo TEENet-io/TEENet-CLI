@@ -19,10 +19,10 @@ export class CodeInfoErr {
  * 							send <code>								// send code to backend for verification  
  */
 export function addCodeCmd(
-	program: Command, 
-	cfg: Config, 
-	provider: Provider, 
-	abi: ABIs, 
+	program: Command,
+	cfg: Config,
+	provider: Provider,
+	abi: ABIs,
 	wallets: Record<string, Wallet>
 ): Command {
 	const codeCmd = program
@@ -32,25 +32,27 @@ export function addCodeCmd(
 	codeCmd
 		.command('get <hash>')
 		.description('Get code info by hash')
-		.action((hash) => {
-			if(!isCodeHash(hash)) {
+		.action(async (hash) => {
+			if (!isCodeHash(hash)) {
 				logger.err(CodeInfoErr.InvalidHash(hash).message);
 				return;
 			}
 
-			get({
-				provider,
-				addr: cfg.deployed.CodeInfo,
-				abi: abi.CodeInfo
-			}, hash).catch((err) => {
-				logger.err(err.message);
-			});
+			try {
+				await get({
+					provider,
+					addr: cfg.deployed.CodeInfo,
+					abi: abi.CodeInfo
+				}, hash);
+			} catch (err: any) {
+				logger.err(err.message || 'Unknown error');
+			}
 		});
 
 	codeCmd
 		.command('addOrUpdate <addrOrIdx> <file>')
 		.description('Add/update code info')
-		.action((addrOrIdx, file) => {
+		.action(async (addrOrIdx, file) => {
 			const walletOrErr = getWallet(addrOrIdx, wallets);
 			if (walletOrErr instanceof Error) {
 				logger.err(walletOrErr.message);
@@ -58,42 +60,46 @@ export function addCodeCmd(
 			}
 
 			const codeOrErr = loadDataFromFile(file);
-			if(codeOrErr instanceof Error) {
+			if (codeOrErr instanceof Error) {
 				logger.err(codeOrErr.message);
 				return;
 			}
-			
-			if(!isCodeHash(codeOrErr.hash)) {
+
+			if (!isCodeHash(codeOrErr.hash)) {
 				logger.err(CodeInfoErr.InvalidHash(codeOrErr.hash).message);
 				return;
 			}
 
-			addOrUpdate({
-				provider,
-				addr: cfg.deployed.CodeInfo,
-				abi: abi.CodeInfo
-			}, walletOrErr, codeOrErr).catch((err) => {
+			try {
+				await addOrUpdate({
+					provider,
+					addr: cfg.deployed.CodeInfo,
+					abi: abi.CodeInfo
+				}, walletOrErr, codeOrErr);
+			} catch (err: any) {
 				logger.err(err.message || 'Unknown error');
-			});
+			}
 		});
 
 	codeCmd
 		.command('remove <addrOrIdx> <hash>')
 		.description('Remove code info by hash')
-		.action((addrOrIdx, hash) => {
+		.action(async (addrOrIdx, hash) => {
 			const walletOrErr = getWallet(addrOrIdx, wallets);
 			if (walletOrErr instanceof Error) {
 				logger.err(walletOrErr.message);
 				return;
 			}
 
-			remove({
-				provider,
-				addr: cfg.deployed.CodeInfo,
-				abi: abi.CodeInfo
-			}, walletOrErr, hash).catch((err) => {
+			try {
+				await remove({
+					provider,
+					addr: cfg.deployed.CodeInfo,
+					abi: abi.CodeInfo
+				}, walletOrErr, hash);
+			} catch (err: any) {
 				logger.err(err.message || 'Unknown error');
-			});;
+			}
 		});
 
 	return codeCmd;
@@ -101,7 +107,7 @@ export function addCodeCmd(
 
 async function get(params: Params, hash: string) {
 	const codeManager = new CodeManager(params);
-	if(!(await codeManager.codeExists(hash))) {
+	if (!(await codeManager.codeExists(hash))) {
 		throw CodeInfoErr.NotFound(hash);
 	}
 
@@ -135,7 +141,7 @@ async function remove(params: Params, backend: Signer, hash: string) {
 	// Testing the existence of the code hash is necessary since
 	// execute remove on contract with a non-existing code hash
 	// would not generate error.
-	if(!(await codeManager.codeExists(hash))) {
+	if (!(await codeManager.codeExists(hash))) {
 		throw CodeInfoErr.NotFound(hash);
 	}
 

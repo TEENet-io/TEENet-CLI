@@ -7,12 +7,12 @@ const programs = genProgram();
 programs.forEach(program => program.exitOverride());
 
 repl.start({
-	prompt: '> teenet ', 
-	eval: (cmd, context, filename, callback) => {
+	prompt: '> teenet ',
+	eval: async (cmd, context, filename, callback) => {
 		const args = cmd.trim().split(' ');
 		try {
-			programs[0].parse(args, {from: 'user'});
-			callback(null)
+			await programs[0].parseAsync(args, { from: 'user' });
+			callback(null);
 		} catch (err) {
 			callback(null);
 		}

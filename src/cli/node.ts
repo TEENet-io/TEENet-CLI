@@ -32,20 +32,22 @@ export function addNodeCmd(
 	nodeCmd
 		.command('get <pk>')
 		.description('Get TEE node info by its public key')
-		.action((pk) => {
-			get({
-				provider,
-				addr: cfg.deployed.NodeInfo,
-				abi: abi.NodeInfo
-			}, pk).catch((err) => {
-				logger.err(err.message);
-			});
+		.action(async (pk) => {
+			try {
+				await get({
+					provider,
+					addr: cfg.deployed.NodeInfo,
+					abi: abi.NodeInfo
+				}, pk);
+			} catch (err: any) {
+				logger.err(err.message || 'Unknown error');
+			}
 		});
 
 	nodeCmd
 		.command('add <addrOrIdx> <file>')
 		.description('Add/update node info')
-		.action((addrOrIdx, file) => {
+		.action(async (addrOrIdx, file) => {
 			const walletOrErr = getWallet(addrOrIdx, wallets);
 			if (walletOrErr instanceof Error) {
 				logger.err(walletOrErr.message);
@@ -63,32 +65,36 @@ export function addNodeCmd(
 				return;
 			}
 
-			add({
-				provider,
-				addr: cfg.deployed.NodeInfo,
-				abi: abi.NodeInfo
-			}, walletOrErr, nodeOrErr).catch((err) => {
-				logger.err(err.message);
-			});
+			try {
+				await add({
+					provider,
+					addr: cfg.deployed.NodeInfo,
+					abi: abi.NodeInfo
+				}, walletOrErr, nodeOrErr);
+			} catch (err: any) {
+				logger.err(err.message || 'Unknown error');
+			}
 		});
 
 	nodeCmd
 		.command('remove <addrOrIdx> <pk>')
 		.description('Remove node info by public key')
-		.action((addrOrIdx, pk) => {
+		.action(async (addrOrIdx, pk) => {
 			const walletOrErr = getWallet(addrOrIdx, wallets);
 			if (walletOrErr instanceof Error) {
 				logger.err(walletOrErr.message);
 				return;
 			}
 
-			remove({
-				provider,
-				addr: cfg.deployed.NodeInfo,
-				abi: abi.NodeInfo
-			}, walletOrErr, pk).catch((err) => {
-				logger.err(err.message);
-			});
+			try {
+				await remove({
+					provider,
+					addr: cfg.deployed.NodeInfo,
+					abi: abi.NodeInfo
+				}, walletOrErr, pk);
+			} catch (err: any) {
+				logger.err(err.message || 'Unknown error');
+			}
 		});
 
 	return nodeCmd;

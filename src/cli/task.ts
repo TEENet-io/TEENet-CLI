@@ -48,10 +48,10 @@ export class TaskManagerErr {
  */
 
 export function addTaskCmd(
-	program: Command, 
-	cfg: Config, 
-	provider: Provider, 
-	abi: ABIs, 
+	program: Command,
+	cfg: Config,
+	provider: Provider,
+	abi: ABIs,
 	wallets: Record<string, Wallet>
 ): Command {
 	const taskCmd = program
@@ -61,36 +61,57 @@ export function addTaskCmd(
 	taskCmd
 		.command('update')
 		.description('Update task info')
-		.action(() => {
-			updateTaskData({ provider, addr: cfg.deployed.TaskMgr, abi: abi.TaskMgr })
-				.catch((err) => { logger.err(err.message); });
+		.action(async () => {
+			try {
+				await updateTaskData({
+					provider,
+					addr: cfg.deployed.TaskMgr,
+					abi: abi.TaskMgr
+				});
+			} catch (err: any) {
+				logger.err(err.message || 'Unknown error');
+			}
 		});
 
 	taskCmd
 		.command('list')
 		.description('List task info including id, reward, expiring data and node participation info')
-		.action(() => {
-			listTasks({ provider, addr: cfg.deployed.TaskMgr, abi: abi.TaskMgr })
-				.catch((err) => { logger.err(err.message); });
+		.action(async () => {
+			try {
+				await listTasks({
+					provider,
+					addr: cfg.deployed.TaskMgr,
+					abi: abi.TaskMgr
+				});
+			} catch (err: any) {
+				logger.err(err.message || 'Unknown error');
+			}
 		});
 
 	taskCmd
 		.command('get <id>')
 		.description('Get details of a task')
-		.action((id) => {
+		.action(async (id) => {
 			if (!isTaskId(id)) {
 				logger.err(TaskManagerErr.InvalidId(id).message);
 				return;
 			}
 
-			getTask({ provider, addr: cfg.deployed.TaskMgr, abi: abi.TaskMgr }, id)
-				.catch((err) => { logger.err(err.message); });
+			try {
+				await getTask({
+					provider,
+					addr: cfg.deployed.TaskMgr,
+					abi: abi.TaskMgr
+				}, id);
+			} catch (err: any) {
+				logger.err(err.message || 'Unknown error');
+			}
 		});
 
 	taskCmd
 		.command('add <addrOrIdx> <file>')
 		.description('Add a task')
-		.action((addrOrIdx, file) => {
+		.action(async (addrOrIdx, file) => {
 			const walletOrErr = getWallet(addrOrIdx, wallets);
 			if (walletOrErr instanceof Error) {
 				logger.err(walletOrErr.message);
@@ -106,13 +127,20 @@ export function addTaskCmd(
 			// TODO:
 			// May add logic to check the validity of loaded task
 
-			addTask({ provider, addr: cfg.deployed.TaskMgr, abi: abi.TaskMgr }, walletOrErr, taskOrErr)
-				.catch((err) => { logger.err(err.message); });
+			try {
+				await addTask({
+					provider,
+					addr: cfg.deployed.TaskMgr,
+					abi: abi.TaskMgr
+				}, walletOrErr, taskOrErr);
+			} catch (err: any) {
+				logger.err(err.message || 'Unknown error');
+			}
 		});
 	taskCmd
 		.command('join <addrOrIdx> <id> <pk>')
 		.description('Join a task')
-		.action((addrOrIdx, id, pk) => {
+		.action(async (addrOrIdx, id, pk) => {
 			const walletOrErr = getWallet(addrOrIdx, wallets);
 			if (walletOrErr instanceof Error) {
 				logger.err(walletOrErr.message);
@@ -129,55 +157,71 @@ export function addTaskCmd(
 				return;
 			}
 
-			joinTask({ provider, addr: cfg.deployed.TaskMgr, abi: abi.TaskMgr }, walletOrErr, id, pk)
-				.catch((err) => { logger.err(err.message); });
+			try {
+				await joinTask({
+					provider,
+					addr: cfg.deployed.TaskMgr,
+					abi: abi.TaskMgr
+				}, walletOrErr, id, pk);
+			} catch (err: any) {
+				logger.err(err.message || 'Unknown error');
+			}
 		});
 	taskCmd
 		.command('balance <addrOrIdx>')
 		.description('Get withdraw balance')
-		.action((addrOrIdx) => {
+		.action(async (addrOrIdx) => {
 			const walletOrErr = getWallet(addrOrIdx, wallets);
 			if (walletOrErr instanceof Error) {
 				logger.err(walletOrErr.message);
 				return;
 			}
 
-			new TaskManager({
-				provider,
-				addr: cfg.deployed.TaskMgr,
-				abi: abi.TaskMgr
-			}).balance(walletOrErr.address).then((balanceOrErr: bigint | Error) => {
+			try {
+				const balanceOrErr = await new TaskManager({
+					provider,
+					addr: cfg.deployed.TaskMgr,
+					abi: abi.TaskMgr
+				}).balance(walletOrErr.address);
+
 				if (balanceOrErr instanceof Error) {
 					logger.err(balanceOrErr.message);
 					return;
 				}
 				logger.log(`Withdraw balance\nAddress: ${walletOrErr.address}\nBalance: ${Number(balanceOrErr)}`);
-			});
+			} catch (err: any) {
+				logger.err(err.message || 'Unknown error');
+			}
 		});
 	taskCmd
 		.command('withdraw <addrOrIdx>')
 		.description('Withdraw balance')
-		.action((addrOrIdx) => {
+		.action(async (addrOrIdx) => {
 			const walletOrErr = getWallet(addrOrIdx, wallets);
 			if (walletOrErr instanceof Error) {
 				logger.err(walletOrErr.message);
 				return;
 			}
-			new TaskManager({
-				provider,
-				addr: cfg.deployed.TaskMgr,
-				abi: abi.TaskMgr
-			}).withdraw(walletOrErr).then((errOrNull) => {
+
+			try {
+				const errOrNull = await new TaskManager({
+					provider,
+					addr: cfg.deployed.TaskMgr,
+					abi: abi.TaskMgr
+				}).withdraw(walletOrErr);
+
 				if (errOrNull instanceof Error) {
 					logger.err(errOrNull.message);
 				}
 				logger.log(`Balance withdrawn\nAddress: ${walletOrErr.address}`);
-			});
+			} catch (err: any) {
+				logger.err(err.message || 'Unknown error');
+			}
 		});
 	taskCmd
 		.command('reward <addrOrIdx> <file>')
 		.description('Distribute reward')
-		.action((addrOrIdx, file) => {
+		.action(async (addrOrIdx, file) => {
 			const walletOrErr = getWallet(addrOrIdx, wallets);
 			if (walletOrErr instanceof Error) {
 				logger.err(walletOrErr.message);
@@ -206,8 +250,15 @@ export function addTaskCmd(
 				}
 			};
 
-			rewardTask({ provider, addr: cfg.deployed.TaskMgr, abi: abi.TaskMgr }, walletOrErr, req.id, req.pks)
-				.catch((err) => { logger.err(err.message); });
+			try {
+				await rewardTask({ 
+					provider, 
+					addr: cfg.deployed.TaskMgr, 
+					abi: abi.TaskMgr 
+				}, walletOrErr, req.id, req.pks);
+			} catch (err: any) {
+				logger.err(err.message || 'Unknown error');
+			}
 		});
 
 	return taskCmd;
