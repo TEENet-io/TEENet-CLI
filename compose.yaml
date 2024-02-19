@@ -1,0 +1,20 @@
+services:
+  hardhat-node:
+    image: hardhat-node
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: hardhat-node
+    ports:
+      - '8545:8545'
+  teenet-repl:
+    image: teenet-repl
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: teenet-repl
+    depends_on:
+      - hardhat-node
+    network_mode: host
+    tty: true
+    stdin_open: true
