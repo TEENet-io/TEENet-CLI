@@ -1,15 +1,14 @@
 # TEENet
 TEENet is a Decentralized Physical Infrastructure Network (DePIN) formed by machines that are equipped with Trusted Execution Environment (TEE). It provides an effective and efficient solution to crowdsourcing TEE computing power for computations that require security, integrity and confidentiality. In the context of Web3, these computations could be cross-chain transaction validation, Layer2 transaction validation or staking validation, etc.  
 
-## CLI Installation
-
+## Installing CLI and Setting up Demo
 Download source files
 ```bash
 git clone git@github.com:zzGHzz/TEENet.git
 ```
-Install packages and link CLI binary
+Install packages
 ```bash
-cd TEENet && npm install && npm link
+cd TEENet && npm install
 ```
 Compile smart contracts
 ```bash
@@ -19,11 +18,11 @@ Open a new terminal, go to the `TEENet` folder and start the Hardhat network
 ```bash
 npx hardhat node
 ```
-Run script
+Go back to the previous terminal and run script
 ```bash
 npx ts-node ./script/deployOnHardhat.ts
 ```
-to deploy smart contracts and generate files including: 
+to deploy smart contracts and generate files for the demo: 
 * `./cmd/config.teenet.json`
 * `./cmd/abi.teenet.json`
 * `./cmd/pks.teenet.json`
@@ -31,7 +30,19 @@ to deploy smart contracts and generate files including:
 * `./cmd/data/node.sample.json`
 * `./cmd/data/task.sample.json`
 
-### Try CLI
+## Installing via Docker
+```bash
+git clone git@github.com:zzGHzz/TEENet.git
+cd TEENet
+docker compose build
+docker compose run teenet-repl
+```
+After that, run script to set up the demo
+```bash
+npx ts-node ./script/deployOnHardhat.ts
+```
+
+## Testing CLI via Demo
 ```bash
 teenet wallet list
 ```
@@ -73,8 +84,7 @@ teenet task get 0xfffa542f2913ced66b030c0f0dc3a2ecc6836f1e5638a2ffb307ab5459276e
 ```
 to get the task detail info.
 
-### Try REPL
-Go to `TEENet` folder and run
+### Try REPL MODE
 ```bash
 node ./cmd/repl.js
 ```
