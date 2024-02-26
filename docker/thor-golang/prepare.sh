@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -ex
+set -e
 
 ROOT='thor'
 GIT_URL='git@github.com:vechain/thor.git'
@@ -11,7 +11,7 @@ BINARY='bin-occlum-go-compiled'
 # Download the source code
 if [ ! -d $ROOT ]; then
 	echo "Downloading source code..."
-  	git clone $GIT_URL
+  	git clone $GIT_URL > /dev/null 2>&1
 fi
 
 if [ ! -d '/dev/sgx' ]; then
@@ -20,15 +20,15 @@ fi
 ln -sf ../sgx_enclave /dev/sgx/enclave
 ln -sf ../sgx_provision /dev/sgx/provision
 
-echo "Starting occlum instance..."
-if [ "$(docker ps -q -f name=$CONTAINER)" ]; then
-	docker stop $CONTAINER
+echo 'Starting occlum container ...'
+if [ ! -z $(docker ps -q -f name=$CONTAINER) ]
+then
+	docker stop $CONTAINER && \
+	docker run -d -it --rm --privileged --name occlum -v /dev/sgx:/dev/sgx -v "./${ROOT}:/root/${ROOT}" -w /root/$ROOT $IMAGE 
+else
+	docker run -d -it --rm --privileged --name occlum -v /dev/sgx:/dev/sgx -v "./${ROOT}:/root/${ROOT}" -w /root/$ROOT $IMAGE
 fi
-docker run -it -d --rm --privileged --name $CONTAINER -v /dev/sgx:/dev/sgx -v "./${ROOT}:/root/${ROOT}" $IMAGE
+echo 'Building source code using occlum-go ...'
+docker exec -it -e GO111MODULE=on occlum occlum-go build -v -o ./bin ./cmd/thor
 
-docker exec -it --privileged -w "/root/${ROOT}" -e GO111MODULE=on occlum occlum-go build -v -o ./bin ./cmd/thor
-
-if [ "$(docker ps -q -f name=$CONTAINER)" ]; then
-	docker stop $CONTAINER
-fi
 cp "./${ROOT}/bin" "./${BINARY}"

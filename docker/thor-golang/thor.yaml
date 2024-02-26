@@ -4,4 +4,4 @@ targets:
   - target: /bin
     copy:
       - files:
-        - ./bin-occlum-go-compiled
+        - ../bin-occlum-go-compiled
