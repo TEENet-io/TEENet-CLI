@@ -53,5 +53,5 @@ docker exec -i occlum /bin/sh <<EOF
 	occlum build
 	# 3. Run
 	echo -e "${BLUE}occlum run /bin/${BIN}${NC}"
-	occlum run /bin/$BIN solo
+	occlum run /bin/$BIN $@
 EOF
